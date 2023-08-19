@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>org.pikovets</groupId>
-	<artifactId>social-network</artifactId>
+	<artifactId>GeeksSocialNetworkAPI</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>social-network</name>
+	<name>GeeksSocialNetworkAPI</name>
 	<description>Social network app</description>
 	<properties>
 		<java.version>17</java.version>

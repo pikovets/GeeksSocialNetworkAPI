@@ -1,13 +1,13 @@
-package org.pikovets.socialnetwork.aop;
+package org.pikovets.GeeksSocialNetworkAPI.aop;
 
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.pikovets.socialnetwork.model.User;
-import org.pikovets.socialnetwork.core.CustomResponse;
-import org.pikovets.socialnetwork.core.CustomStatus;
+import org.pikovets.GeeksSocialNetworkAPI.model.User;
+import org.pikovets.GeeksSocialNetworkAPI.core.CustomResponse;
+import org.pikovets.GeeksSocialNetworkAPI.core.CustomStatus;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;

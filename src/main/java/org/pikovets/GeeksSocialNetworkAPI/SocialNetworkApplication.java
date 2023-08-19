@@ -1,4 +1,4 @@
-package org.pikovets.socialnetwork;
+package org.pikovets.GeeksSocialNetworkAPI;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.boot.SpringApplication;
