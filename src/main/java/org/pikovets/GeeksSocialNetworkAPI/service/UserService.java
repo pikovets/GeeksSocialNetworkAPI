@@ -1,17 +1,16 @@
-package org.pikovets.socialnetwork.service;
+package org.pikovets.GeeksSocialNetworkAPI.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.pikovets.socialnetwork.model.User;
-import org.pikovets.socialnetwork.repository.UserRepository;
-import org.pikovets.socialnetwork.core.CustomResponse;
-import org.pikovets.socialnetwork.core.CustomStatus;
+import org.pikovets.GeeksSocialNetworkAPI.model.User;
+import org.pikovets.GeeksSocialNetworkAPI.repository.UserRepository;
+import org.pikovets.GeeksSocialNetworkAPI.core.CustomResponse;
+import org.pikovets.GeeksSocialNetworkAPI.core.CustomStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service

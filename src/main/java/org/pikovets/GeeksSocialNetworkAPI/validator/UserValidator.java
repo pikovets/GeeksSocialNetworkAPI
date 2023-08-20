@@ -1,7 +1,7 @@
-package org.pikovets.socialnetwork.validator;
+package org.pikovets.GeeksSocialNetworkAPI.validator;
 
-import org.pikovets.socialnetwork.model.User;
-import org.pikovets.socialnetwork.service.UserService;
+import org.pikovets.GeeksSocialNetworkAPI.model.User;
+import org.pikovets.GeeksSocialNetworkAPI.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;

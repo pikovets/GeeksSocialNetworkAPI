@@ -1,4 +1,4 @@
-package org.pikovets.socialnetwork.core;
+package org.pikovets.GeeksSocialNetworkAPI.core;
 
 import lombok.Getter;
 

@@ -1,14 +1,14 @@
-package org.pikovets.socialnetwork.controllers;
+package org.pikovets.GeeksSocialNetworkAPI.controllers;
 
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
-import org.pikovets.socialnetwork.dto.UserDTO;
-import org.pikovets.socialnetwork.model.User;
-import org.pikovets.socialnetwork.service.UserService;
-import org.pikovets.socialnetwork.core.CustomResponse;
-import org.pikovets.socialnetwork.core.CustomStatus;
-import org.pikovets.socialnetwork.core.ErrorsUtil;
-import org.pikovets.socialnetwork.validator.UserValidator;
+import org.pikovets.GeeksSocialNetworkAPI.dto.UserDTO;
+import org.pikovets.GeeksSocialNetworkAPI.model.User;
+import org.pikovets.GeeksSocialNetworkAPI.service.UserService;
+import org.pikovets.GeeksSocialNetworkAPI.core.CustomResponse;
+import org.pikovets.GeeksSocialNetworkAPI.core.CustomStatus;
+import org.pikovets.GeeksSocialNetworkAPI.core.ErrorsUtil;
+import org.pikovets.GeeksSocialNetworkAPI.validator.UserValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;

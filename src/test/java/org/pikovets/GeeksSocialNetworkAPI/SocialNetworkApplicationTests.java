@@ -1,4 +1,4 @@
-package org.pikovets.socialnetwork;
+package org.pikovets.GeeksSocialNetworkAPI;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

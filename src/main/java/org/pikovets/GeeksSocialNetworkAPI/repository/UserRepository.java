@@ -1,6 +1,6 @@
-package org.pikovets.socialnetwork.repository;
+package org.pikovets.GeeksSocialNetworkAPI.repository;
 
-import org.pikovets.socialnetwork.model.User;
+import org.pikovets.GeeksSocialNetworkAPI.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
