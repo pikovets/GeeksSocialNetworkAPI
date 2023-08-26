@@ -95,14 +95,14 @@ public class LoggingAspect {
     public Object aroundUpdatingAdvice(ProceedingJoinPoint joinPoint) {
         MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
 
-        User user = null;
+        UUID id = null;
 
         if (methodSignature.getName().equals("updateUser")) {
             Object[] args = joinPoint.getArgs();
             for (Object arg : args) {
-                if (arg instanceof User) {
-                    user = (User) arg;
-                    log.info("Trying to update user with {} email", user.getEmail());
+                if (arg instanceof UUID) {
+                    id = (UUID) arg;
+                    log.info("Trying to update user with {} id", id);
                 }
             }
         }
@@ -119,7 +119,7 @@ public class LoggingAspect {
         }
 
         if (methodSignature.getName().equals("updateUser")) {
-            log.info("User with {} email successfully updated", user.getEmail());
+            log.info("User with {} id successfully updated", id);
         }
 
         return result;

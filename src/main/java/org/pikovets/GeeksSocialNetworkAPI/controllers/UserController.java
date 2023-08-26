@@ -7,9 +7,10 @@ import org.pikovets.GeeksSocialNetworkAPI.model.User;
 import org.pikovets.GeeksSocialNetworkAPI.service.UserService;
 import org.pikovets.GeeksSocialNetworkAPI.core.CustomResponse;
 import org.pikovets.GeeksSocialNetworkAPI.core.CustomStatus;
-import org.pikovets.GeeksSocialNetworkAPI.core.ErrorsUtil;
+import org.pikovets.GeeksSocialNetworkAPI.core.ErrorUtils;
 import org.pikovets.GeeksSocialNetworkAPI.validator.UserValidator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,8 +40,8 @@ public class UserController {
                 CustomStatus.values()[userResponse.getCode()]);
     }
 
-    @GetMapping("/signin")
-    public CustomResponse<UserDTO> signIn(@RequestParam("id") UUID id) {
+    @GetMapping("/{id}")
+    public CustomResponse<UserDTO> getUserById(@PathVariable("id") UUID id) {
         CustomResponse<User> userResponse = userService.getUserById(id);
 
         return new CustomResponse<>(
@@ -48,33 +49,15 @@ public class UserController {
                 CustomStatus.values()[userResponse.getCode()]);
     }
 
-    @PostMapping("/signup")
-    public CustomResponse<UserDTO> signUp(@RequestBody @Valid UserDTO userDTO, BindingResult bindingResult) {
-        User user = convertToUser(userDTO);
-        CustomResponse<User> userResponse;
-
-        userValidator.validate(user, bindingResult);
-        if (bindingResult.hasErrors()) {
-            userResponse = ErrorsUtil.returnBadRequestException(user, bindingResult);
-        } else {
-            userResponse = userService.saveUser(user);
-        }
-
-        return new CustomResponse<>(
-                userResponse.getCode(),
-                userResponse.getMessage(),
-                userResponse.getResponseList().stream().map(this::convertToUserDTO).toList());
-    }
-
     @PatchMapping("/{id}")
     public CustomResponse<UserDTO> updateUser(@RequestBody @Valid UserDTO userDTO, BindingResult bindingResult,
-                                          @PathVariable("id") UUID id) {
+                                              @PathVariable("id") UUID id) {
         User user = convertToUser(userDTO);
         CustomResponse<User> userResponse;
 
         userValidator.validate(user, bindingResult);
         if (bindingResult.hasErrors()) {
-            userResponse = ErrorsUtil.returnBadRequestException(user, bindingResult);
+            userResponse = ErrorUtils.returnBadRequestException(user, bindingResult);
         } else {
             userResponse = userService.updateUser(user, id);
         }

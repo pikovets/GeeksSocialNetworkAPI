@@ -10,9 +10,14 @@ import java.util.Collection;
 public class CustomResponse<T> {
     private final int code;
 
-    private  String message;
+    private String message;
 
-    private final Collection<T> responseList;
+    private Collection<T> responseList;
+
+    public CustomResponse(CustomStatus customStatus) {
+        this.code = customStatus.getCode();
+        this.message = customStatus.getMessage();
+    }
 
     public CustomResponse(Collection<T> response, CustomStatus customStatus) {
         this.code = customStatus.getCode();
