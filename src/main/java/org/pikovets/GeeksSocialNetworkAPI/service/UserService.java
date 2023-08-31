@@ -1,15 +1,18 @@
 package org.pikovets.GeeksSocialNetworkAPI.service;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.pikovets.GeeksSocialNetworkAPI.model.User;
 import org.pikovets.GeeksSocialNetworkAPI.repository.UserRepository;
+import org.pikovets.GeeksSocialNetworkAPI.security.jwt.JwtUtils;
 import org.pikovets.GeeksSocialNetworkAPI.core.CustomResponse;
 import org.pikovets.GeeksSocialNetworkAPI.core.CustomStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -17,7 +20,6 @@ import java.util.UUID;
 @Slf4j
 @Transactional(readOnly = true)
 public class UserService {
-
     private final UserRepository userRepository;
 
     @Autowired
@@ -39,16 +41,6 @@ public class UserService {
 
     public CustomResponse<User> getUserByEmail(String email) {
         User user = userRepository.findByEmail(email).orElseThrow();
-
-        return new CustomResponse<>(List.of(user), CustomStatus.SUCCESS);
-    }
-
-    @Transactional
-    public CustomResponse<User> saveUser(User user) {
-        user.setIsActive(true);
-        user.setJoinedAt(LocalDateTime.now());
-
-        userRepository.save(user);
 
         return new CustomResponse<>(List.of(user), CustomStatus.SUCCESS);
     }
@@ -76,5 +68,6 @@ public class UserService {
 
         expandableUser.setIsActive(userHelper.getIsActive());
         expandableUser.setJoinedAt(userHelper.getJoinedAt());
+        expandableUser.setRole(userHelper.getRole());
     }
 }
