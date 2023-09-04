@@ -1,5 +1,6 @@
 package org.pikovets.GeeksSocialNetworkAPI.config;
 
+import org.pikovets.GeeksSocialNetworkAPI.exceptions.UserNotFoundException;
 import org.pikovets.GeeksSocialNetworkAPI.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -26,7 +27,7 @@ public class ApplicationConfig {
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> userRepository
-                .findByEmail(username).orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .findByEmail(username).orElseThrow(UserNotFoundException::new);
     }
 
     @Bean

@@ -1,7 +1,7 @@
 package org.pikovets.GeeksSocialNetworkAPI.service;
 
-import org.pikovets.GeeksSocialNetworkAPI.core.CustomResponse;
-import org.pikovets.GeeksSocialNetworkAPI.core.CustomStatus;
+import org.pikovets.GeeksSocialNetworkAPI.dto.TokenResponse;
+import org.pikovets.GeeksSocialNetworkAPI.exceptions.UserNotFoundException;
 import org.pikovets.GeeksSocialNetworkAPI.model.Role;
 import org.pikovets.GeeksSocialNetworkAPI.model.User;
 import org.pikovets.GeeksSocialNetworkAPI.repository.UserRepository;
@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 public class AuthService {
@@ -32,20 +31,17 @@ public class AuthService {
     }
 
     @Transactional
-    public CustomResponse<String> registerUser(User user) {
+    public void registerUser(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRole(Role.USER);
         user.setIsActive(true);
         user.setJoinedAt(LocalDateTime.now());
 
         userRepository.save(user);
-        String jwtToken = jwtUtils.generateToken(user);
-
-        return new CustomResponse<>(List.of(jwtToken), CustomStatus.SUCCESS);
     }
 
     @Transactional
-    public CustomResponse<String> loginUser(String username, String password) {
+    public TokenResponse loginUser(String username, String password) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         username,
@@ -53,9 +49,9 @@ public class AuthService {
                 )
         );
 
-        User user = userRepository.findByEmail(username).orElseThrow();
+        User user = userRepository.findByEmail(username).orElseThrow(UserNotFoundException::new);
         String jwtToken = jwtUtils.generateToken(user);
 
-        return new CustomResponse<>(List.of(jwtToken), CustomStatus.SUCCESS);
+        return new TokenResponse(jwtToken);
     }
 }

@@ -1,5 +1,6 @@
 package org.pikovets.GeeksSocialNetworkAPI.validator;
 
+import org.pikovets.GeeksSocialNetworkAPI.exceptions.UserNotFoundException;
 import org.pikovets.GeeksSocialNetworkAPI.model.User;
 import org.pikovets.GeeksSocialNetworkAPI.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,8 +27,11 @@ public class UserValidator implements Validator {
     public void validate(Object target, Errors errors) {
         User user = (User) target;
 
-        if (!userService.getUserByEmail(user.getEmail()).getResponseList().isEmpty()) {
-            errors.rejectValue("email", "This email is already taken");
+        try {
+            if (userService.getUserByEmail(user.getEmail()) != null) {
+                errors.rejectValue("email", "This email is already taken");
+            }
+        } catch (UserNotFoundException ignored) {
         }
     }
 }
