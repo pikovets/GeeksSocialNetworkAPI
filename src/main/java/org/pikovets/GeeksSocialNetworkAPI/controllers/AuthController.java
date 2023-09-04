@@ -2,13 +2,15 @@ package org.pikovets.GeeksSocialNetworkAPI.controllers;
 
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
-import org.pikovets.GeeksSocialNetworkAPI.core.CustomResponse;
 import org.pikovets.GeeksSocialNetworkAPI.core.ErrorUtils;
+import org.pikovets.GeeksSocialNetworkAPI.dto.TokenResponse;
 import org.pikovets.GeeksSocialNetworkAPI.dto.UserDTO;
 import org.pikovets.GeeksSocialNetworkAPI.model.User;
 import org.pikovets.GeeksSocialNetworkAPI.service.AuthService;
 import org.pikovets.GeeksSocialNetworkAPI.validator.UserValidator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,33 +29,23 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public CustomResponse<String> registerUser(@RequestBody @Valid UserDTO userDTO, BindingResult bindingResult) {
+    public ResponseEntity<HttpStatus> registerUser(@RequestBody @Valid UserDTO userDTO, BindingResult bindingResult) {
         User user = convertToUser(userDTO);
-        CustomResponse<String> jwtResponse;
 
         userValidator.validate(user, bindingResult);
         if (bindingResult.hasErrors()) {
-            jwtResponse = ErrorUtils.returnBadRequestException(bindingResult);
-        } else {
-            jwtResponse = authService.registerUser(user);
+            ErrorUtils.returnBadRequestException(bindingResult);
         }
 
-        return new CustomResponse<>(
-                jwtResponse.getCode(),
-                jwtResponse.getMessage(),
-                jwtResponse.getResponseList());
+        authService.registerUser(user);
+
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @GetMapping("/login")
-    public CustomResponse<String> loginUser(@RequestParam("username") String username, @RequestParam("password") String password)  {
-        CustomResponse<String> jwtResponse;
-
-        jwtResponse = authService.loginUser(username, password);
-
-        return new CustomResponse<>(
-                jwtResponse.getCode(),
-                jwtResponse.getMessage(),
-                jwtResponse.getResponseList());
+    public ResponseEntity<TokenResponse> loginUser(@RequestParam("username") String username, @RequestParam("password") String password)  {
+        TokenResponse jwtResponse = authService.loginUser(username, password);
+        return new ResponseEntity<>(jwtResponse, HttpStatus.OK);
     }
 
     public User convertToUser(UserDTO userDTO) {

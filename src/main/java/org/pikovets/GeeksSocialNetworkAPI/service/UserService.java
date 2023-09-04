@@ -2,14 +2,10 @@ package org.pikovets.GeeksSocialNetworkAPI.service;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.pikovets.GeeksSocialNetworkAPI.exceptions.UserNotFoundException;
 import org.pikovets.GeeksSocialNetworkAPI.model.User;
 import org.pikovets.GeeksSocialNetworkAPI.repository.UserRepository;
-import org.pikovets.GeeksSocialNetworkAPI.security.jwt.JwtUtils;
-import org.pikovets.GeeksSocialNetworkAPI.core.CustomResponse;
-import org.pikovets.GeeksSocialNetworkAPI.core.CustomStatus;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,44 +23,36 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public CustomResponse<User> getAllUsers() {
-        List<User> users = userRepository.findAll();
-
-        return new CustomResponse<>(users, CustomStatus.SUCCESS);
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
     }
 
-    public CustomResponse<User> getUserById(UUID id) {
-        User user = userRepository.findById(id).orElseThrow();
-
-        return new CustomResponse<>(List.of(user), CustomStatus.SUCCESS);
+    public User getUserById(UUID id) {
+        return userRepository.findById(id).orElseThrow(UserNotFoundException::new);
     }
 
-    public CustomResponse<User> getUserByEmail(String email) {
-        User user = userRepository.findByEmail(email).orElseThrow();
-
-        return new CustomResponse<>(List.of(user), CustomStatus.SUCCESS);
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email).orElseThrow(UserNotFoundException::new);
     }
 
     @Transactional
-    public CustomResponse<User> updateUser(User updatedUser, UUID id) {
+    public User updateUser(User updatedUser, UUID id) {
         updatedUser.setId(id);
         enrichUser(updatedUser, id);
 
         userRepository.save(updatedUser);
 
-        return new CustomResponse<>(List.of(updatedUser), CustomStatus.SUCCESS);
+        return updatedUser;
     }
 
     @Transactional
-    public CustomResponse<User> deleteUser(UUID id) {
-        User deletedUser = userRepository.findById(id).orElseThrow();
+    public void deleteUser(UUID id) {
+        User deletedUser = userRepository.findById(id).orElseThrow(UserNotFoundException::new);
         userRepository.delete(deletedUser);
-
-        return new CustomResponse<>(List.of(deletedUser), CustomStatus.SUCCESS);
     }
 
     public void enrichUser(User expandableUser, UUID id) {
-        User userHelper = userRepository.findById(id).orElseThrow();
+        User userHelper = userRepository.findById(id).orElseThrow(UserNotFoundException::new);
 
         expandableUser.setIsActive(userHelper.getIsActive());
         expandableUser.setJoinedAt(userHelper.getJoinedAt());
