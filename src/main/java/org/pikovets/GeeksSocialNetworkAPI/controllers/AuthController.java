@@ -1,5 +1,6 @@
 package org.pikovets.GeeksSocialNetworkAPI.controllers;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.pikovets.GeeksSocialNetworkAPI.core.ErrorUtils;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
+@Tag(name = "Auth")
 public class AuthController {
     private final AuthService authService;
     private final UserValidator userValidator;

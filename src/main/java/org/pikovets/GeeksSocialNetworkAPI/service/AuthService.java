@@ -5,7 +5,7 @@ import org.pikovets.GeeksSocialNetworkAPI.exceptions.UserNotFoundException;
 import org.pikovets.GeeksSocialNetworkAPI.model.Role;
 import org.pikovets.GeeksSocialNetworkAPI.model.User;
 import org.pikovets.GeeksSocialNetworkAPI.repository.UserRepository;
-import org.pikovets.GeeksSocialNetworkAPI.security.jwt.JwtUtils;
+import org.pikovets.GeeksSocialNetworkAPI.security.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

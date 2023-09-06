@@ -1,4 +1,4 @@
-package org.pikovets.GeeksSocialNetworkAPI.security.jwt;
+package org.pikovets.GeeksSocialNetworkAPI.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
