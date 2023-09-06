@@ -1,4 +1,4 @@
-package org.pikovets.GeeksSocialNetworkAPI.security.jwt;
+package org.pikovets.GeeksSocialNetworkAPI.security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
