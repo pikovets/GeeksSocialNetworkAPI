@@ -93,7 +93,7 @@ public class UserController {
 
     @Operation(
             summary = "Update an existing user",
-            description = "Updates a specific user by id, if the updated email is already taken, a Bad Request error will be thrown",
+            description = "Updates a specific user by id. If the updated email is already taken, a Bad Request error will be thrown",
             parameters = {
                     @Parameter(
                             name = "id",
