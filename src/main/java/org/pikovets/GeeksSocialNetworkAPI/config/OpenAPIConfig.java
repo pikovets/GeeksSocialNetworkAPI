@@ -17,7 +17,10 @@ import io.swagger.v3.oas.annotations.servers.Server;
                         email = "contact@gsn.com",
                         url = "https://geeks-social-network.com"
                 ),
-                description = "OpenAPI documentation for Spring Security",
+                description = "This is the API documentation for the Geek Social Network application." +
+                        " It uses JWT tokens for security." +
+                        " You must provide a valid JWT token for some functions to run successfully, otherwise a 403 Forbidden error will be generated." +
+                        " For more information on how JWT tokens work, please visit the following website: [jwt.io/introduction](https://jwt.io/introduction).",
                 title = "OpenAPI specification - Geeks Social Network",
                 version = "1.0"
         ),
