@@ -1,11 +1,16 @@
 package org.pikovets.GeeksSocialNetworkAPI.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.pikovets.GeeksSocialNetworkAPI.core.ErrorUtils;
 import org.pikovets.GeeksSocialNetworkAPI.dto.TokenResponse;
 import org.pikovets.GeeksSocialNetworkAPI.dto.UserDTO;
+import org.pikovets.GeeksSocialNetworkAPI.exceptions.ErrorObject;
 import org.pikovets.GeeksSocialNetworkAPI.model.User;
 import org.pikovets.GeeksSocialNetworkAPI.service.AuthService;
 import org.pikovets.GeeksSocialNetworkAPI.validator.UserValidator;
@@ -30,6 +35,25 @@ public class AuthController {
         this.modelMapper = modelMapper;
     }
 
+    @Operation(
+            summary = "Register a new user",
+            description = "Registers a new user. If the email is already taken, a Bad Request error will be thrown",
+            responses = {
+                    @ApiResponse(
+                            description = "Success",
+                            responseCode = "200"
+                    ),
+                    @ApiResponse(
+                            description = "Bad Request",
+                            responseCode = "400",
+                            content = @Content(schema = @Schema(implementation = ErrorObject.class))
+                    ),
+                    @ApiResponse(
+                            description = "Unauthorized / Invalid Token",
+                            responseCode = "403"
+                    )
+            }
+    )
     @PostMapping("/register")
     public ResponseEntity<HttpStatus> registerUser(@RequestBody @Valid UserDTO userDTO, BindingResult bindingResult) {
         User user = convertToUser(userDTO);
@@ -44,6 +68,25 @@ public class AuthController {
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
+    @Operation(
+            summary = "Login",
+            description = "Login and returns a jwt token. If the user with this login does not exist, the error Not Found will be thrown",
+            responses = {
+                    @ApiResponse(
+                            description = "Success",
+                            responseCode = "200"
+                    ),
+                    @ApiResponse(
+                            description = "Bad Request",
+                            responseCode = "400",
+                            content = @Content(schema = @Schema(implementation = ErrorObject.class))
+                    ),
+                    @ApiResponse(
+                            description = "Unauthorized / Invalid Token",
+                            responseCode = "403"
+                    )
+            }
+    )
     @GetMapping("/login")
     public ResponseEntity<TokenResponse> loginUser(@RequestParam("username") String username, @RequestParam("password") String password)  {
         TokenResponse jwtResponse = authService.loginUser(username, password);

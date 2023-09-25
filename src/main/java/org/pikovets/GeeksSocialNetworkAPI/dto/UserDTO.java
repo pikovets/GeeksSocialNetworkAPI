@@ -10,8 +10,6 @@ import java.util.UUID;
 
 @Data
 public class UserDTO {
-    private UUID id;
-
     @NotEmpty(message = "First name cannot be empty")
     @Size(min = 2, max = 30, message = "First name should be between 2 and 30 characters long")
     @Pattern(regexp = "^[A-Za-z\\\\p{L}]+$", message = "Make sure you don't use numbers or symbols in your first name")
