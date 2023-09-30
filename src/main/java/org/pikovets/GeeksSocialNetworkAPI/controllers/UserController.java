@@ -171,7 +171,31 @@ public class UserController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-
+    @Operation(
+            summary = "Create post",
+            description = "Creates a post on the wall of the specified user",
+            parameters = {
+                    @Parameter(
+                            name = "id",
+                            description = "Post author id"
+                    )
+            },
+            responses = {
+                    @ApiResponse(
+                            description = "Success",
+                            responseCode = "200"
+                    ),
+                    @ApiResponse(
+                            description = "Bad Request",
+                            responseCode = "400",
+                            content = @Content(schema = @Schema(implementation = ErrorObject.class))
+                    ),
+                    @ApiResponse(
+                            description = "Unauthorized / Invalid Token",
+                            responseCode = "403"
+                    )
+            }
+    )
     @PostMapping("/{id}/wall")
     public ResponseEntity<HttpStatus> createPost(@PathVariable("id") UUID authorId, @RequestBody CreatePostRequest createRequest) {
         postService.createPost(authorId, createRequest);
