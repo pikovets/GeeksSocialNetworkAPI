@@ -1,8 +1,6 @@
 package org.pikovets.GeeksSocialNetworkAPI.service;
 
-import lombok.extern.slf4j.Slf4j;
-
-import org.pikovets.GeeksSocialNetworkAPI.exceptions.UserNotFoundException;
+import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotFoundException;
 import org.pikovets.GeeksSocialNetworkAPI.model.User;
 import org.pikovets.GeeksSocialNetworkAPI.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +11,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-@Slf4j
 @Transactional(readOnly = true)
 public class UserService {
     private final UserRepository userRepository;
@@ -28,31 +25,29 @@ public class UserService {
     }
 
     public User getUserById(UUID id) {
-        return userRepository.findById(id).orElseThrow(UserNotFoundException::new);
+        return userRepository.findById(id).orElseThrow(new NotFoundException("User not found"));
     }
 
     public User getUserByEmail(String email) {
-        return userRepository.findByEmail(email).orElseThrow(UserNotFoundException::new);
+        return userRepository.findByEmail(email).orElseThrow(new NotFoundException("User not found"));
     }
 
     @Transactional
-    public User updateUser(User updatedUser, UUID id) {
+    public void updateUser(User updatedUser, UUID id) {
         updatedUser.setId(id);
         enrichUser(updatedUser, id);
 
         userRepository.save(updatedUser);
-
-        return updatedUser;
     }
 
     @Transactional
     public void deleteUser(UUID id) {
-        User deletedUser = userRepository.findById(id).orElseThrow(UserNotFoundException::new);
+        User deletedUser = userRepository.findById(id).orElseThrow(new NotFoundException("User not found"));
         userRepository.delete(deletedUser);
     }
 
     public void enrichUser(User expandableUser, UUID id) {
-        User userHelper = userRepository.findById(id).orElseThrow(UserNotFoundException::new);
+        User userHelper = userRepository.findById(id).orElseThrow(new NotFoundException("User not found"));
 
         expandableUser.setIsActive(userHelper.getIsActive());
         expandableUser.setJoinedAt(userHelper.getJoinedAt());
