@@ -9,7 +9,7 @@ import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.pikovets.GeeksSocialNetworkAPI.core.ErrorUtils;
 import org.pikovets.GeeksSocialNetworkAPI.dto.TokenResponse;
-import org.pikovets.GeeksSocialNetworkAPI.dto.UserDTO;
+import org.pikovets.GeeksSocialNetworkAPI.dto.user.UserDTO;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.ErrorObject;
 import org.pikovets.GeeksSocialNetworkAPI.model.User;
 import org.pikovets.GeeksSocialNetworkAPI.service.AuthService;

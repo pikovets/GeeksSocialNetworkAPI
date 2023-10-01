@@ -5,25 +5,30 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
-import org.pikovets.GeeksSocialNetworkAPI.dto.UserDTO;
-import org.pikovets.GeeksSocialNetworkAPI.dto.UserResponse;
+import org.pikovets.GeeksSocialNetworkAPI.dto.post.CreatePostRequest;
+import org.pikovets.GeeksSocialNetworkAPI.dto.post.PostDTO;
+import org.pikovets.GeeksSocialNetworkAPI.dto.user.UserDTO;
+import org.pikovets.GeeksSocialNetworkAPI.dto.user.UserResponse;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.ErrorObject;
-import org.pikovets.GeeksSocialNetworkAPI.exceptions.UserNotFoundException;
+import org.pikovets.GeeksSocialNetworkAPI.model.Post;
 import org.pikovets.GeeksSocialNetworkAPI.model.User;
+import org.pikovets.GeeksSocialNetworkAPI.service.PostService;
 import org.pikovets.GeeksSocialNetworkAPI.service.UserService;
 import org.pikovets.GeeksSocialNetworkAPI.core.ErrorUtils;
 import org.pikovets.GeeksSocialNetworkAPI.validator.UserValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.json.GsonBuilderUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/users")
@@ -33,12 +38,14 @@ public class UserController {
     private final UserService userService;
     private final ModelMapper modelMapper;
     private final UserValidator userValidator;
+    private final PostService postService;
 
     @Autowired
-    public UserController(UserService userService, ModelMapper modelMapper, UserValidator userValidator) {
+    public UserController(UserService userService, ModelMapper modelMapper, UserValidator userValidator, PostService postService) {
         this.userService = userService;
         this.modelMapper = modelMapper;
         this.userValidator = userValidator;
+        this.postService = postService;
     }
 
     @Operation(
@@ -161,6 +168,37 @@ public class UserController {
     @DeleteMapping("/{id}")
     public ResponseEntity<HttpStatus> deleteUser(@PathVariable("id") UUID id) {
         userService.deleteUser(id);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @Operation(
+            summary = "Create post",
+            description = "Creates a post on the wall of the specified user",
+            parameters = {
+                    @Parameter(
+                            name = "id",
+                            description = "Post author id"
+                    )
+            },
+            responses = {
+                    @ApiResponse(
+                            description = "Success",
+                            responseCode = "200"
+                    ),
+                    @ApiResponse(
+                            description = "Bad Request",
+                            responseCode = "400",
+                            content = @Content(schema = @Schema(implementation = ErrorObject.class))
+                    ),
+                    @ApiResponse(
+                            description = "Unauthorized / Invalid Token",
+                            responseCode = "403"
+                    )
+            }
+    )
+    @PostMapping("/{id}/wall")
+    public ResponseEntity<HttpStatus> createPost(@PathVariable("id") UUID authorId, @RequestBody CreatePostRequest createRequest) {
+        postService.createPost(authorId, createRequest);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
