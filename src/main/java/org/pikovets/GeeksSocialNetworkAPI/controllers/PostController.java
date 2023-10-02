@@ -67,6 +67,36 @@ public class PostController {
         return convertToPostDTO(postService.getPostById(id));
     }
 
+    @Operation(
+            summary = "Update post by ID",
+            description = "Updates a specific post by id. If the post text is longer than 2200, a Bad Request error will be thrown",
+            parameters = {
+                    @Parameter(
+                            name = "id",
+                            description = "ID of post to update"
+                    )
+            },
+            responses = {
+                    @ApiResponse(
+                            description = "Success",
+                            responseCode = "200"
+                    ),
+                    @ApiResponse(
+                            description = "Bad Request",
+                            responseCode = "400",
+                            content = @Content(schema = @Schema(implementation = ErrorObject.class))
+                    ),
+                    @ApiResponse(
+                            description = "Not Found",
+                            responseCode = "404",
+                            content = @Content(schema = @Schema(implementation = ErrorObject.class))
+                    ),
+                    @ApiResponse(
+                            description = "Unauthorized / Invalid Token",
+                            responseCode = "403"
+                    )
+            }
+    )
     @PatchMapping("/{id}")
     public ResponseEntity<HttpStatus> updatePost(@PathVariable("id") UUID id, @RequestBody @Valid UpdatePostRequest updateRequest,
                                                  BindingResult bindingResult) {
