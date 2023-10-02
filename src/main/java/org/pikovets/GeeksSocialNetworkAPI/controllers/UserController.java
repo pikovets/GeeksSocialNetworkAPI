@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.pikovets.GeeksSocialNetworkAPI.dto.post.CreatePostRequest;
 import org.pikovets.GeeksSocialNetworkAPI.dto.post.PostDTO;
+import org.pikovets.GeeksSocialNetworkAPI.dto.post.PostResponse;
 import org.pikovets.GeeksSocialNetworkAPI.dto.user.UserDTO;
 import org.pikovets.GeeksSocialNetworkAPI.dto.user.UserResponse;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.ErrorObject;
@@ -200,6 +201,16 @@ public class UserController {
     public ResponseEntity<HttpStatus> createPost(@PathVariable("id") UUID authorId, @RequestBody CreatePostRequest createRequest) {
         postService.createPost(authorId, createRequest);
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}/wall")
+    public ResponseEntity<PostResponse> getUserPosts(@PathVariable("id") UUID authorId){
+        return new ResponseEntity<>(
+                new PostResponse(userService.getUserPosts(authorId).stream().map(this::convertToPostDTO).toList()), HttpStatus.OK);
+    }
+
+    public PostDTO convertToPostDTO(Post post) {
+        return modelMapper.map(post, PostDTO.class);
     }
 
     public UserDTO convertToUserDTO(User user) {
