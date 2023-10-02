@@ -3,6 +3,7 @@ package org.pikovets.GeeksSocialNetworkAPI.service;
 import org.hibernate.annotations.NotFound;
 import org.pikovets.GeeksSocialNetworkAPI.dto.post.CreatePostRequest;
 import org.pikovets.GeeksSocialNetworkAPI.dto.post.PostDTO;
+import org.pikovets.GeeksSocialNetworkAPI.dto.post.UpdatePostRequest;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotFoundException;
 import org.pikovets.GeeksSocialNetworkAPI.model.Post;
 import org.pikovets.GeeksSocialNetworkAPI.repository.PostRepository;
@@ -36,6 +37,20 @@ public class PostService {
 
     public Post getPostById(UUID id) {
         return postRepository.findById(id).orElseThrow(new NotFoundException("User not found"));
+    }
+
+    @Transactional
+    public void updatePost(UUID id, UpdatePostRequest updateRequest)
+    {
+        Post postToBeUpdated = postRepository.findById(id).orElseThrow(new NotFoundException("Post not found"));
+
+        Post updatedPost = new Post();
+        updatedPost.setText(updateRequest.getText());
+        updatedPost.setId(id);
+        updatedPost.setDate(postToBeUpdated.getDate());
+        updatedPost.setAuthor(postToBeUpdated.getAuthor());
+
+        postRepository.save(updatedPost);
     }
 
     public void enrichPost(UUID authorID, Post post, CreatePostRequest createRequest) {
