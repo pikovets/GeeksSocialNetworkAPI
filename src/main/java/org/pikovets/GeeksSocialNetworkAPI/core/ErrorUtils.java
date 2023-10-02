@@ -1,6 +1,6 @@
 package org.pikovets.GeeksSocialNetworkAPI.core;
 
-import org.pikovets.GeeksSocialNetworkAPI.exceptions.UserBadRequestException;
+import org.pikovets.GeeksSocialNetworkAPI.exceptions.BadRequestException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 
@@ -17,6 +17,6 @@ public class ErrorUtils {
                     .append("; ");
         }
 
-        throw new UserBadRequestException(stringBuilder.toString().trim());
+        throw new BadRequestException(stringBuilder.toString().trim());
     }
 }

@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 @Entity
@@ -19,11 +21,15 @@ public class Post {
     private UUID id;
 
     @NotNull
-    @Column(name = "first_name")
+    @Column(name = "date")
     private LocalDateTime date;
 
     @NotEmpty(message = "The post text cannot be blank")
     @Size(min = 1, max = 2200, message = "The post text should contain between 0 and 2200 characters")
     @Column(name = "text")
     private String text;
+
+    @ManyToOne
+    @JoinColumn(name="author_id", referencedColumnName = "id")
+    private User author;
 }
