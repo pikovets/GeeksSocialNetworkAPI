@@ -1,8 +1,7 @@
-package org.pikovets.GeeksSocialNetworkAPI.dto;
+package org.pikovets.GeeksSocialNetworkAPI.dto.user;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.pikovets.GeeksSocialNetworkAPI.model.User;
 
 import java.util.List;
 
