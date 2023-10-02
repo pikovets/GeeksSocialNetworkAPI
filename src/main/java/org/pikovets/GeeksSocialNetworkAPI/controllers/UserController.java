@@ -203,6 +203,31 @@ public class UserController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @Operation(
+            summary = "Get posts",
+            description = "Gets posts of the specified user",
+            parameters = {
+                    @Parameter(
+                            name = "id",
+                            description = "Post author id"
+                    )
+            },
+            responses = {
+                    @ApiResponse(
+                            description = "Success",
+                            responseCode = "200"
+                    ),
+                    @ApiResponse(
+                            description = "Not Found",
+                            responseCode = "404",
+                            content = @Content(schema = @Schema(implementation = ErrorObject.class))
+                    ),
+                    @ApiResponse(
+                            description = "Unauthorized / Invalid Token",
+                            responseCode = "403"
+                    )
+            }
+    )
     @GetMapping("/{id}/wall")
     public ResponseEntity<PostResponse> getUserPosts(@PathVariable("id") UUID authorId){
         return new ResponseEntity<>(
