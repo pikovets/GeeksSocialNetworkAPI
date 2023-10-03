@@ -53,6 +53,14 @@ public class PostService {
         postRepository.save(updatedPost);
     }
 
+    @Transactional
+    public void deletePost(UUID id) {
+        Post deletedPost = postRepository.findById(id)
+                .orElseThrow(new NotFoundException("Post not found"));
+
+        postRepository.delete(deletedPost);
+    }
+
     public void enrichPost(UUID authorID, Post post, CreatePostRequest createRequest) {
         post.setText(createRequest.getText());
         post.setAuthor(userService.getUserById(authorID));

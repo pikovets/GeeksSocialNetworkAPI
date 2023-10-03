@@ -108,6 +108,43 @@ public class PostController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @Operation(
+            summary = "Delete post by ID",
+            description = "Deletes a specific post by id",
+            parameters = {
+                    @Parameter(
+                            name = "id",
+                            description = "ID of post to delete"
+                    )
+            },
+            responses = {
+                    @ApiResponse(
+                            description = "Success",
+                            responseCode = "200"
+                    ),
+                    @ApiResponse(
+                            description = "Bad Request",
+                            responseCode = "400",
+                            content = @Content(schema = @Schema(implementation = ErrorObject.class))
+                    ),
+                    @ApiResponse(
+                            description = "Not Found",
+                            responseCode = "404",
+                            content = @Content(schema = @Schema(implementation = ErrorObject.class))
+                    ),
+                    @ApiResponse(
+                            description = "Unauthorized / Invalid Token",
+                            responseCode = "403"
+                    )
+            }
+    )
+    @DeleteMapping("/{id}")
+    public ResponseEntity<HttpStatus> deletePost(@PathVariable("id") UUID id)
+    {
+        postService.deletePost(id);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
     public PostDTO convertToPostDTO(Post post) {
         return modelMapper.map(post, PostDTO.class);
     }
