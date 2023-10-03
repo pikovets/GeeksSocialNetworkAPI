@@ -8,7 +8,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.pikovets.GeeksSocialNetworkAPI.core.ErrorUtils;
-import org.pikovets.GeeksSocialNetworkAPI.dto.TokenResponse;
+import org.pikovets.GeeksSocialNetworkAPI.dto.auth.LoginRequest;
+import org.pikovets.GeeksSocialNetworkAPI.dto.auth.TokenResponse;
 import org.pikovets.GeeksSocialNetworkAPI.dto.user.UserDTO;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.ErrorObject;
 import org.pikovets.GeeksSocialNetworkAPI.model.User;
@@ -47,10 +48,6 @@ public class AuthController {
                             description = "Bad Request",
                             responseCode = "400",
                             content = @Content(schema = @Schema(implementation = ErrorObject.class))
-                    ),
-                    @ApiResponse(
-                            description = "Unauthorized / Invalid Token",
-                            responseCode = "403"
                     )
             }
     )
@@ -80,16 +77,12 @@ public class AuthController {
                             description = "Bad Request",
                             responseCode = "400",
                             content = @Content(schema = @Schema(implementation = ErrorObject.class))
-                    ),
-                    @ApiResponse(
-                            description = "Unauthorized / Invalid Token",
-                            responseCode = "403"
                     )
             }
     )
     @GetMapping("/login")
-    public ResponseEntity<TokenResponse> loginUser(@RequestParam("username") String username, @RequestParam("password") String password)  {
-        TokenResponse jwtResponse = authService.loginUser(username, password);
+    public ResponseEntity<TokenResponse> loginUser(@RequestBody LoginRequest loginRequest) {
+        TokenResponse jwtResponse = authService.loginUser(loginRequest);
         return new ResponseEntity<>(jwtResponse, HttpStatus.OK);
     }
 

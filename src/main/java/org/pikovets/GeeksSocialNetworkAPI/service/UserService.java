@@ -36,10 +36,15 @@ public class UserService {
         return userRepository.findByEmail(email).orElseThrow(new NotFoundException("User not found"));
     }
 
+    public List<Post> getUserPosts(UUID authorId) {
+        return postRepository.findByAuthorOrderByDateDesc(
+                userRepository.findById(authorId).orElseThrow(new NotFoundException("User not found")));
+    }
+
     @Transactional
-    public void updateUser(User updatedUser, UUID id) {
+    public void updateUser(UUID id, User updatedUser) {
         updatedUser.setId(id);
-        enrichUser(updatedUser, id);
+        enrichUser(id, updatedUser);
 
         userRepository.save(updatedUser);
     }
@@ -50,12 +55,7 @@ public class UserService {
         userRepository.delete(deletedUser);
     }
 
-    public List<Post> getUserPosts(UUID authorId) {
-        return postRepository.findByAuthorOrderByDateDesc(
-                userRepository.findById(authorId).orElseThrow(new NotFoundException("User not found")));
-    }
-
-    public void enrichUser(User expandableUser, UUID id) {
+    public void enrichUser(UUID id, User expandableUser) {
         User userHelper = userRepository.findById(id).orElseThrow(new NotFoundException("User not found"));
 
         expandableUser.setIsActive(userHelper.getIsActive());
