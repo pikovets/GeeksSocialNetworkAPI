@@ -1,6 +1,7 @@
 package org.pikovets.GeeksSocialNetworkAPI.service;
 
-import org.pikovets.GeeksSocialNetworkAPI.dto.TokenResponse;
+import org.pikovets.GeeksSocialNetworkAPI.dto.auth.LoginRequest;
+import org.pikovets.GeeksSocialNetworkAPI.dto.auth.TokenResponse;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotFoundException;
 import org.pikovets.GeeksSocialNetworkAPI.model.Role;
 import org.pikovets.GeeksSocialNetworkAPI.model.User;
@@ -41,15 +42,15 @@ public class AuthService {
     }
 
     @Transactional
-    public TokenResponse loginUser(String username, String password) {
+    public TokenResponse loginUser(LoginRequest loginRequest) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        username,
-                        password
+                        loginRequest.getEmail(),
+                        loginRequest.getPassword()
                 )
         );
 
-        User user = userRepository.findByEmail(username).orElseThrow(new NotFoundException("User not found"));
+        User user = userRepository.findByEmail(loginRequest.getEmail()).orElseThrow(new NotFoundException("User not found"));
         String jwtToken = jwtUtils.generateToken(user);
 
         return new TokenResponse(jwtToken);

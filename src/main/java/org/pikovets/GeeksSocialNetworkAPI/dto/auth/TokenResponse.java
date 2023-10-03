@@ -1,4 +1,4 @@
-package org.pikovets.GeeksSocialNetworkAPI.dto;
+package org.pikovets.GeeksSocialNetworkAPI.dto.auth;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

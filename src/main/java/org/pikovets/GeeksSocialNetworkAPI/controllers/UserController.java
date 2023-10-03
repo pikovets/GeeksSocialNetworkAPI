@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
+import org.pikovets.GeeksSocialNetworkAPI.core.ErrorUtils;
 import org.pikovets.GeeksSocialNetworkAPI.dto.post.CreatePostRequest;
 import org.pikovets.GeeksSocialNetworkAPI.dto.post.PostDTO;
 import org.pikovets.GeeksSocialNetworkAPI.dto.post.PostResponse;
@@ -18,24 +19,19 @@ import org.pikovets.GeeksSocialNetworkAPI.model.Post;
 import org.pikovets.GeeksSocialNetworkAPI.model.User;
 import org.pikovets.GeeksSocialNetworkAPI.service.PostService;
 import org.pikovets.GeeksSocialNetworkAPI.service.UserService;
-import org.pikovets.GeeksSocialNetworkAPI.core.ErrorUtils;
 import org.pikovets.GeeksSocialNetworkAPI.validator.UserValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.json.GsonBuilderUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/users")
 @Tag(name = "User")
 public class UserController {
-
     private final UserService userService;
     private final ModelMapper modelMapper;
     private final UserValidator userValidator;
@@ -128,8 +124,8 @@ public class UserController {
             }
     )
     @PatchMapping("/{id}")
-    public ResponseEntity<HttpStatus> updateUser(@RequestBody @Valid UserDTO userDTO, BindingResult bindingResult,
-                                                 @PathVariable("id") UUID id) {
+    public ResponseEntity<HttpStatus> updateUser(@PathVariable("id") UUID id, @RequestBody @Valid UserDTO userDTO,
+                                                 BindingResult bindingResult) {
         User user = convertToUser(userDTO);
 
         userValidator.validate(user, bindingResult);
@@ -137,7 +133,7 @@ public class UserController {
             ErrorUtils.returnBadRequestException(bindingResult);
         }
 
-        userService.updateUser(user, id);
+        userService.updateUser(id, user);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -198,7 +194,8 @@ public class UserController {
             }
     )
     @PostMapping("/{id}/wall")
-    public ResponseEntity<HttpStatus> createPost(@PathVariable("id") UUID authorId, @RequestBody CreatePostRequest createRequest) {
+    public ResponseEntity<HttpStatus> createPost(@PathVariable("id") UUID authorId,
+                                                 @RequestBody CreatePostRequest createRequest) {
         postService.createPost(authorId, createRequest);
         return new ResponseEntity<>(HttpStatus.OK);
     }
