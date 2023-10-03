@@ -1,14 +1,11 @@
 package org.pikovets.GeeksSocialNetworkAPI.service;
 
-import org.hibernate.annotations.NotFound;
 import org.pikovets.GeeksSocialNetworkAPI.dto.post.CreatePostRequest;
-import org.pikovets.GeeksSocialNetworkAPI.dto.post.PostDTO;
 import org.pikovets.GeeksSocialNetworkAPI.dto.post.UpdatePostRequest;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotFoundException;
 import org.pikovets.GeeksSocialNetworkAPI.model.Post;
 import org.pikovets.GeeksSocialNetworkAPI.repository.PostRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
