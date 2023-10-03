@@ -108,6 +108,13 @@ public class PostController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<HttpStatus> deletePost(@PathVariable("id") UUID id)
+    {
+        postService.deletePost(id);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
     public PostDTO convertToPostDTO(Post post) {
         return modelMapper.map(post, PostDTO.class);
     }
