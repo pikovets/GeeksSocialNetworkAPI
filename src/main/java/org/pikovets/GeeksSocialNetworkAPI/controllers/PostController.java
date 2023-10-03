@@ -13,10 +13,8 @@ import org.pikovets.GeeksSocialNetworkAPI.dto.post.PostDTO;
 import org.pikovets.GeeksSocialNetworkAPI.dto.post.UpdatePostRequest;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.ErrorObject;
 import org.pikovets.GeeksSocialNetworkAPI.model.Post;
-import org.pikovets.GeeksSocialNetworkAPI.model.User;
 import org.pikovets.GeeksSocialNetworkAPI.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -121,11 +119,6 @@ public class PostController {
                     @ApiResponse(
                             description = "Success",
                             responseCode = "200"
-                    ),
-                    @ApiResponse(
-                            description = "Bad Request",
-                            responseCode = "400",
-                            content = @Content(schema = @Schema(implementation = ErrorObject.class))
                     ),
                     @ApiResponse(
                             description = "Not Found",
