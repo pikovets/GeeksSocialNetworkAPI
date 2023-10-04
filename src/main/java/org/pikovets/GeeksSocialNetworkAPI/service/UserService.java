@@ -32,6 +32,12 @@ public class UserService {
         return userRepository.findAll();
     }
 
+    public User getCurrentUser(String token)
+    {
+        return userRepository.findByEmail(jwtUtils.extractUsername(token))
+                .orElseThrow(UnAuthorizedException::new);
+    }
+
     public User getUserById(UUID id) {
         return userRepository.findById(id).orElseThrow(new NotFoundException("User not found"));
     }

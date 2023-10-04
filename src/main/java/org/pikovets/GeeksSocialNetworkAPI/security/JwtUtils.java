@@ -28,7 +28,7 @@ public class JwtUtils {
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         String jwt = token;
-        if (token.startsWith("Bearer ")) {
+        if (token != null && token.startsWith("Bearer ")) {
             jwt = token.substring(7);
         }
 

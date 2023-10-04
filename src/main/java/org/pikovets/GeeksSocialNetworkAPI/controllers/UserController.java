@@ -66,6 +66,25 @@ public class UserController {
     }
 
     @Operation(
+            summary = "Get current user",
+            description = "Returns current user",
+            responses = {
+                    @ApiResponse(
+                            description = "Success",
+                            responseCode = "200"
+                    ),
+                    @ApiResponse(
+                            description = "Unauthorized / Invalid Token",
+                            responseCode = "403"
+                    )
+            }
+    )
+    @GetMapping("/me")
+    public ResponseEntity<UserDTO> getCurrentUser(@RequestHeader("Authorization") String token) {
+        return new ResponseEntity<>(convertToUserDTO(userService.getCurrentUser(token)), HttpStatus.OK);
+    }
+
+    @Operation(
             summary = "Find user by ID",
             description = "Returns a single user",
             parameters = {
