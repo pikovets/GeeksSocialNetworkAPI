@@ -39,6 +39,9 @@ public class AuthController {
     @Operation(
             summary = "Register a new user",
             description = "Registers a new user. If the email is already taken, a Bad Request error will be thrown",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "UserDTO",
+                    content = @Content(schema = @Schema(implementation = UserDTO.class))
+            ),
             responses = {
                     @ApiResponse(
                             description = "Success",
@@ -68,6 +71,9 @@ public class AuthController {
     @Operation(
             summary = "Login",
             description = "Login and returns a jwt token. If the user with this login does not exist, the error Not Found will be thrown",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "LoginRequest",
+                    content = @Content(schema = @Schema(implementation = LoginRequest.class))
+            ),
             responses = {
                     @ApiResponse(
                             description = "Success",
