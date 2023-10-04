@@ -41,7 +41,6 @@ public class AuthService {
         userRepository.save(user);
     }
 
-    @Transactional
     public TokenResponse loginUser(LoginRequest loginRequest) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(

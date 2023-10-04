@@ -66,6 +66,25 @@ public class UserController {
     }
 
     @Operation(
+            summary = "Get current user",
+            description = "Returns current user",
+            responses = {
+                    @ApiResponse(
+                            description = "Success",
+                            responseCode = "200"
+                    ),
+                    @ApiResponse(
+                            description = "Unauthorized / Invalid Token",
+                            responseCode = "403"
+                    )
+            }
+    )
+    @GetMapping("/me")
+    public ResponseEntity<UserDTO> getCurrentUser(@RequestHeader("Authorization") String token) {
+        return new ResponseEntity<>(convertToUserDTO(userService.getCurrentUser(token)), HttpStatus.OK);
+    }
+
+    @Operation(
             summary = "Find user by ID",
             description = "Returns a single user",
             parameters = {
@@ -96,14 +115,8 @@ public class UserController {
     }
 
     @Operation(
-            summary = "Update an existing user",
-            description = "Updates a specific user by id. If the updated email is already taken, a Bad Request error will be thrown",
-            parameters = {
-                    @Parameter(
-                            name = "id",
-                            description = "ID of user to update"
-                    )
-            },
+            summary = "Edit the current user",
+            description = "Updates the current user. If the updated email is already taken, a Bad Request error will be thrown",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "UserDTO",
                     content = @Content(schema = @Schema(implementation = UserDTO.class))
             ),
@@ -123,9 +136,10 @@ public class UserController {
                     )
             }
     )
-    @PatchMapping("/{id}")
-    public ResponseEntity<HttpStatus> updateUser(@PathVariable("id") UUID id, @RequestBody @Valid UserDTO userDTO,
-                                                 BindingResult bindingResult) {
+    @PatchMapping("/me")
+    public ResponseEntity<HttpStatus> updateUser(@RequestBody @Valid UserDTO userDTO,
+                                                 BindingResult bindingResult,
+                                                 @RequestHeader("Authorization") String token) {
         User user = convertToUser(userDTO);
 
         userValidator.validate(user, bindingResult);
@@ -133,19 +147,13 @@ public class UserController {
             ErrorUtils.returnBadRequestException(bindingResult);
         }
 
-        userService.updateUser(id, user);
+        userService.updateUser(user, token);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @Operation(
-            summary = "Delete user by ID",
-            description = "Deletes an existing user",
-            parameters = {
-                    @Parameter(
-                            name = "id",
-                            description = "ID of user to delete"
-                    )
-            },
+            summary = "Delete the current user",
+            description = "Deletes the current user",
             responses = {
                     @ApiResponse(
                             description = "Success",
@@ -162,41 +170,9 @@ public class UserController {
                     )
             }
     )
-    @DeleteMapping("/{id}")
-    public ResponseEntity<HttpStatus> deleteUser(@PathVariable("id") UUID id) {
-        userService.deleteUser(id);
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
-
-    @Operation(
-            summary = "Create post",
-            description = "Creates a post on the wall of the specified user",
-            parameters = {
-                    @Parameter(
-                            name = "id",
-                            description = "Post author id"
-                    )
-            },
-            responses = {
-                    @ApiResponse(
-                            description = "Success",
-                            responseCode = "200"
-                    ),
-                    @ApiResponse(
-                            description = "Bad Request",
-                            responseCode = "400",
-                            content = @Content(schema = @Schema(implementation = ErrorObject.class))
-                    ),
-                    @ApiResponse(
-                            description = "Unauthorized / Invalid Token",
-                            responseCode = "403"
-                    )
-            }
-    )
-    @PostMapping("/{id}/wall")
-    public ResponseEntity<HttpStatus> createPost(@PathVariable("id") UUID authorId,
-                                                 @RequestBody CreatePostRequest createRequest) {
-        postService.createPost(authorId, createRequest);
+    @DeleteMapping("/me")
+    public ResponseEntity<HttpStatus> deleteUser(@RequestHeader("Authorization") String token) {
+        userService.deleteUser(token);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -229,6 +205,35 @@ public class UserController {
     public ResponseEntity<PostResponse> getUserPosts(@PathVariable("id") UUID authorId){
         return new ResponseEntity<>(
                 new PostResponse(userService.getUserPosts(authorId).stream().map(this::convertToPostDTO).toList()), HttpStatus.OK);
+    }
+
+    @Operation(
+            summary = "Create post",
+            description = "Creates a post on the wall of the specified user",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "CreatePostRequest",
+                    content = @Content(schema = @Schema(implementation = CreatePostRequest.class))
+            ),
+            responses = {
+                    @ApiResponse(
+                            description = "Success",
+                            responseCode = "200"
+                    ),
+                    @ApiResponse(
+                            description = "Bad Request",
+                            responseCode = "400",
+                            content = @Content(schema = @Schema(implementation = ErrorObject.class))
+                    ),
+                    @ApiResponse(
+                            description = "Unauthorized / Invalid Token",
+                            responseCode = "403"
+                    )
+            }
+    )
+    @PostMapping("/me/wall")
+    public ResponseEntity<HttpStatus> createPost(@RequestBody CreatePostRequest createRequest,
+                                                 @RequestHeader("Authorization") String token) {
+        postService.createPost(createRequest, token);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     public PostDTO convertToPostDTO(Post post) {

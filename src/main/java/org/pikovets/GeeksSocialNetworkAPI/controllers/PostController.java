@@ -96,13 +96,15 @@ public class PostController {
             }
     )
     @PatchMapping("/{id}")
-    public ResponseEntity<HttpStatus> updatePost(@PathVariable("id") UUID id, @RequestBody @Valid UpdatePostRequest updateRequest,
-                                                 BindingResult bindingResult) {
+    public ResponseEntity<HttpStatus> updatePost(@PathVariable("id") UUID id,
+                                                 @RequestBody @Valid UpdatePostRequest updateRequest,
+                                                 BindingResult bindingResult,
+                                                 @RequestHeader("Authorization") String token) {
         if (bindingResult.hasErrors()) {
             ErrorUtils.returnBadRequestException(bindingResult);
         }
 
-        postService.updatePost(id, updateRequest);
+        postService.updatePost(id, updateRequest, token);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -132,9 +134,10 @@ public class PostController {
             }
     )
     @DeleteMapping("/{id}")
-    public ResponseEntity<HttpStatus> deletePost(@PathVariable("id") UUID id)
+    public ResponseEntity<HttpStatus> deletePost(@PathVariable("id") UUID id,
+                                                 @RequestHeader("Authorization") String token)
     {
-        postService.deletePost(id);
+        postService.deletePost(id, token);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
