@@ -3,6 +3,7 @@ package org.pikovets.GeeksSocialNetworkAPI.service;
 import org.pikovets.GeeksSocialNetworkAPI.dto.post.CreatePostRequest;
 import org.pikovets.GeeksSocialNetworkAPI.dto.post.UpdatePostRequest;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotFoundException;
+import org.pikovets.GeeksSocialNetworkAPI.exceptions.UnAuthorizedException;
 import org.pikovets.GeeksSocialNetworkAPI.model.Post;
 import org.pikovets.GeeksSocialNetworkAPI.model.User;
 import org.pikovets.GeeksSocialNetworkAPI.repository.PostRepository;
@@ -42,9 +43,10 @@ public class PostService {
     }
 
     @Transactional
-    public void updatePost(UUID id, UpdatePostRequest updateRequest)
-    {
+    public void updatePost(UUID id, UpdatePostRequest updateRequest, String token) {
         Post postToBeUpdated = postRepository.findById(id).orElseThrow(new NotFoundException("Post not found"));
+
+        validateDeletePermission(postToBeUpdated, token);
 
         Post updatedPost = new Post();
         updatedPost.setText(updateRequest.getText());
@@ -56,16 +58,24 @@ public class PostService {
     }
 
     @Transactional
-    public void deletePost(UUID id) {
+    public void deletePost(UUID id, String token) {
         Post deletedPost = postRepository.findById(id)
                 .orElseThrow(new NotFoundException("Post not found"));
+
+        validateDeletePermission(deletedPost, token);
 
         postRepository.delete(deletedPost);
     }
 
-    public void enrichPost(User author, Post post, CreatePostRequest createRequest) {
+    private void enrichPost(User author, Post post, CreatePostRequest createRequest) {
         post.setText(createRequest.getText());
         post.setAuthor(userService.getUserById(author.getId()));
         post.setDate(LocalDateTime.now());
+    }
+
+    private void validateDeletePermission(Post deletedPost, String token) {
+        if (deletedPost.getAuthor().getEmail().equals(jwtUtils.extractUsername(token))) {
+            throw new UnAuthorizedException();
+        }
     }
 }
