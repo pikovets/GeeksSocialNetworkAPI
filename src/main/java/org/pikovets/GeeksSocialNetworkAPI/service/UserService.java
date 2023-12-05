@@ -2,6 +2,7 @@ package org.pikovets.GeeksSocialNetworkAPI.service;
 
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotFoundException;
 import org.pikovets.GeeksSocialNetworkAPI.model.User;
+import org.pikovets.GeeksSocialNetworkAPI.repository.PostRepository;
 import org.pikovets.GeeksSocialNetworkAPI.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,10 +15,14 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class UserService {
     private final UserRepository userRepository;
+    private final PostRepository postRepository;
+    private final JwtUtils jwtUtils;
 
     @Autowired
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, PostRepository postRepository, JwtUtils jwtUtils) {
         this.userRepository = userRepository;
+        this.postRepository = postRepository;
+        this.jwtUtils = jwtUtils;
     }
 
     public List<User> getAllUsers() {

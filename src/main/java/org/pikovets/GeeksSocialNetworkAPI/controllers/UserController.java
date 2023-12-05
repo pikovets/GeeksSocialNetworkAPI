@@ -34,7 +34,6 @@ import java.util.stream.Collectors;
 @RequestMapping("/users")
 @Tag(name = "User")
 public class UserController {
-
     private final UserService userService;
     private final ModelMapper modelMapper;
     private final UserValidator userValidator;

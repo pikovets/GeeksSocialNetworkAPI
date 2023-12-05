@@ -19,7 +19,7 @@ public class PostController {
         this.modelMapper = modelMapper;
         this.postService = postService;
     }
-
+  
     public PostDTO convertToPostDTO(Post post) {
         return modelMapper.map(post, PostDTO.class);
     }
