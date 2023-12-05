@@ -11,8 +11,7 @@ import java.util.Date;
 @ControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<ErrorObject> handleNotFoundException(NotFoundException ex, WebRequest webRequest)
-    {
+    public ResponseEntity<ErrorObject> handleNotFoundException(NotFoundException ex, WebRequest webRequest) {
         ErrorObject errorObject = new ErrorObject();
 
         errorObject.setStatusCode(HttpStatus.NOT_FOUND.value());
@@ -23,8 +22,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<ErrorObject> handleBadRequestException(BadRequestException ex, WebRequest webRequest)
-    {
+    public ResponseEntity<ErrorObject> handleBadRequestException(BadRequestException ex, WebRequest webRequest) {
         ErrorObject errorObject = new ErrorObject();
 
         errorObject.setStatusCode(HttpStatus.BAD_REQUEST.value());

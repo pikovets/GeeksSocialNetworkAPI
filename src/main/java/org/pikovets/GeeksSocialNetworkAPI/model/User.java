@@ -8,7 +8,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -24,15 +23,12 @@ public class User implements UserDetails {
     @Column(name = "id")
     private UUID id;
 
-    @NotEmpty(message = "First name cannot be empty")
-    @Size(min = 2, max = 30, message = "First name should be between 2 and 30 characters long")
-    @Pattern(regexp = "^[A-Za-z\\\\p{L}]+$", message = "Make sure you don't use numbers or symbols in your first name")
+    @Size(min = 1, max = 40, message = "First name should be between 1 and 40 characters long")
+    @Pattern(regexp = "^[A-Za-z-' ]+$", message = "Make sure you don't use numbers or symbols in your first name")
     @Column(name = "first_name")
     private String firstName;
 
-    @NotEmpty(message = "Last name cannot be empty")
-    @Size(min = 2, max = 30, message = "Last name should be between 2 and 30 characters long")
-    @Pattern(regexp = "^[A-Za-z\\\\p{L}]+$", message = "Make sure you don't use numbers or symbols in your last name")
+    @Size(max = 50, message = "Last name should be less than 50 characters")
     @Column(name = "last_name")
     private String lastName;
 
@@ -50,10 +46,6 @@ public class User implements UserDetails {
     private Boolean isActive;
 
     @NotNull
-    @Column(name = "joined_at")
-    private LocalDateTime joinedAt;
-
-    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
     private Role role;
@@ -63,7 +55,7 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-            return List.of(new SimpleGrantedAuthority(role.name()));
+        return List.of(new SimpleGrantedAuthority(role.name()));
     }
 
     @Override
@@ -73,7 +65,7 @@ public class User implements UserDetails {
 
     @Override
     public String getUsername() {
-        return email;
+        return id.toString();
     }
 
     @Override
@@ -94,5 +86,17 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        User user = new User();
+
+        user.setFirstName(this.getFirstName());
+        user.setLastName(this.getFirstName());
+        user.setEmail(this.getEmail());
+        user.setPassword(this.getPassword());
+
+        return user;
     }
 }

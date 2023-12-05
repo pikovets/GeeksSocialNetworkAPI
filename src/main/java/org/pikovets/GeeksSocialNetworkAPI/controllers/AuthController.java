@@ -9,7 +9,8 @@ import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.pikovets.GeeksSocialNetworkAPI.core.ErrorUtils;
 import org.pikovets.GeeksSocialNetworkAPI.dto.TokenResponse;
-import org.pikovets.GeeksSocialNetworkAPI.dto.user.UserDTO;
+import org.pikovets.GeeksSocialNetworkAPI.dto.user.AuthDTO;
+import org.pikovets.GeeksSocialNetworkAPI.dto.user.SignUpDTO;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.ErrorObject;
 import org.pikovets.GeeksSocialNetworkAPI.model.User;
 import org.pikovets.GeeksSocialNetworkAPI.service.AuthService;
@@ -18,7 +19,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/auth")
@@ -26,13 +30,11 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
     private final AuthService authService;
     private final UserValidator userValidator;
-    private final ModelMapper modelMapper;
 
     @Autowired
-    public AuthController(AuthService authService, UserValidator userValidator, ModelMapper modelMapper) {
+    public AuthController(AuthService authService, UserValidator userValidator) {
         this.authService = authService;
         this.userValidator = userValidator;
-        this.modelMapper = modelMapper;
     }
 
     @Operation(
@@ -47,23 +49,17 @@ public class AuthController {
                             description = "Bad Request",
                             responseCode = "400",
                             content = @Content(schema = @Schema(implementation = ErrorObject.class))
-                    ),
-                    @ApiResponse(
-                            description = "Unauthorized / Invalid Token",
-                            responseCode = "403"
                     )
             }
     )
-    @PostMapping("/register")
-    public ResponseEntity<HttpStatus> registerUser(@RequestBody @Valid UserDTO userDTO, BindingResult bindingResult) {
-        User user = convertToUser(userDTO);
-
-        userValidator.validate(user, bindingResult);
+    @PostMapping("/signup")
+    public ResponseEntity<HttpStatus> registerUser(@RequestBody @Valid SignUpDTO signUpDTO, BindingResult bindingResult) {
+        userValidator.validate(signUpDTO, bindingResult);
         if (bindingResult.hasErrors()) {
             ErrorUtils.returnBadRequestException(bindingResult);
         }
 
-        authService.registerUser(user);
+        authService.registerUser(signUpDTO);
 
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
@@ -81,19 +77,11 @@ public class AuthController {
                             responseCode = "400",
                             content = @Content(schema = @Schema(implementation = ErrorObject.class))
                     ),
-                    @ApiResponse(
-                            description = "Unauthorized / Invalid Token",
-                            responseCode = "403"
-                    )
             }
     )
-    @GetMapping("/login")
-    public ResponseEntity<TokenResponse> loginUser(@RequestParam("username") String username, @RequestParam("password") String password)  {
-        TokenResponse jwtResponse = authService.loginUser(username, password);
+    @PostMapping("/login")
+    public ResponseEntity<TokenResponse> loginUser(@RequestBody AuthDTO authDTO) {
+        TokenResponse jwtResponse = authService.loginUser(authDTO);
         return new ResponseEntity<>(jwtResponse, HttpStatus.OK);
-    }
-
-    public User convertToUser(UserDTO userDTO) {
-        return modelMapper.map(userDTO, User.class);
     }
 }

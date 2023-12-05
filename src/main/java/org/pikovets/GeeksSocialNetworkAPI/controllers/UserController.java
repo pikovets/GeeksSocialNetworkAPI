@@ -6,46 +6,46 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
+import org.pikovets.GeeksSocialNetworkAPI.core.ErrorUtils;
 import org.pikovets.GeeksSocialNetworkAPI.dto.post.CreatePostRequest;
-import org.pikovets.GeeksSocialNetworkAPI.dto.post.PostDTO;
 import org.pikovets.GeeksSocialNetworkAPI.dto.user.UserDTO;
 import org.pikovets.GeeksSocialNetworkAPI.dto.user.UserResponse;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.ErrorObject;
-import org.pikovets.GeeksSocialNetworkAPI.model.Post;
 import org.pikovets.GeeksSocialNetworkAPI.model.User;
+import org.pikovets.GeeksSocialNetworkAPI.security.IAuthenticationFacade;
 import org.pikovets.GeeksSocialNetworkAPI.service.PostService;
 import org.pikovets.GeeksSocialNetworkAPI.service.UserService;
-import org.pikovets.GeeksSocialNetworkAPI.core.ErrorUtils;
 import org.pikovets.GeeksSocialNetworkAPI.validator.UserValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.json.GsonBuilderUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/users")
 @Tag(name = "User")
 public class UserController {
-
     private final UserService userService;
     private final ModelMapper modelMapper;
     private final UserValidator userValidator;
     private final PostService postService;
+    private final IAuthenticationFacade authenticationFacade;
 
     @Autowired
-    public UserController(UserService userService, ModelMapper modelMapper, UserValidator userValidator, PostService postService) {
+    public UserController(UserService userService,
+                          ModelMapper modelMapper,
+                          UserValidator userValidator,
+                          PostService postService,
+                          IAuthenticationFacade authenticationFacade) {
         this.userService = userService;
         this.modelMapper = modelMapper;
         this.userValidator = userValidator;
         this.postService = postService;
+        this.authenticationFacade = authenticationFacade;
     }
 
     @Operation(
@@ -84,7 +84,7 @@ public class UserController {
                     ),
                     @ApiResponse(
                             description = "Not Found",
-                            responseCode= "404",
+                            responseCode = "404",
                             content = @Content(schema = @Schema(implementation = ErrorObject.class))
                     ),
                     @ApiResponse(
@@ -96,6 +96,11 @@ public class UserController {
     @GetMapping("/{id}")
     public ResponseEntity<UserDTO> getUserById(@PathVariable("id") UUID id) {
         return new ResponseEntity<>(convertToUserDTO(userService.getUserById(id)), HttpStatus.OK);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserDTO> getCurrentUser(@PathVariable("id") UUID id) {
+        return new ResponseEntity<>(convertToUserDTO(userService.getUserById(authenticationFacade.getUserID())), HttpStatus.OK);
     }
 
     @Operation(
@@ -126,17 +131,20 @@ public class UserController {
                     )
             }
     )
-    @PatchMapping("/{id}")
-    public ResponseEntity<HttpStatus> updateUser(@RequestBody @Valid UserDTO userDTO, BindingResult bindingResult,
-                                                 @PathVariable("id") UUID id) {
-        User user = convertToUser(userDTO);
+    @PatchMapping
+    public ResponseEntity<HttpStatus> updateUser(@RequestBody UserDTO userDTO, BindingResult bindingResult) {
+        User existingUser = userService.getUserById(authenticationFacade.getUserID());
+        User mergedUser = userService.mergeUsers(existingUser, convertToUser(userDTO));
 
-        userValidator.validate(user, bindingResult);
+        if (!mergedUser.getEmail().equals(existingUser.getEmail())) {
+            userValidator.validate(mergedUser, bindingResult);
+        }
+
         if (bindingResult.hasErrors()) {
             ErrorUtils.returnBadRequestException(bindingResult);
         }
 
-        userService.updateUser(user, id);
+        userService.updateUser(mergedUser, authenticationFacade.getUserID());
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -165,9 +173,9 @@ public class UserController {
                     )
             }
     )
-    @DeleteMapping("/{id}")
-    public ResponseEntity<HttpStatus> deleteUser(@PathVariable("id") UUID id) {
-        userService.deleteUser(id);
+    @DeleteMapping
+    public ResponseEntity<HttpStatus> deleteUser() {
+        userService.deleteUser(authenticationFacade.getUserID());
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -197,8 +205,8 @@ public class UserController {
             }
     )
     @PostMapping("/{id}/wall")
-    public ResponseEntity<HttpStatus> createPost(@PathVariable("id") UUID authorId, @RequestBody CreatePostRequest createRequest) {
-        postService.createPost(authorId, createRequest);
+    public ResponseEntity<HttpStatus> createPost(@RequestBody CreatePostRequest createRequest) {
+        postService.createPost(authenticationFacade.getUserID(), createRequest);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

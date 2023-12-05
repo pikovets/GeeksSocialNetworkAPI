@@ -9,4 +9,4 @@ COPY ./pom.xml ./pom.xml
 
 RUN mvn package
 
-ENTRYPOINT ["java", "-jar", "target/social-network-0.0.1-SNAPSHOT.jar"]
+ENTRYPOINT ["java", "-jar", "target/GeeksSocialNetworkAPI-0.0.1-SNAPSHOT.jar"]

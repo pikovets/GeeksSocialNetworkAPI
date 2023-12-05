@@ -1,9 +1,5 @@
 package org.pikovets.GeeksSocialNetworkAPI.dto.user;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
@@ -17,13 +13,11 @@ public class UserDTO {
     private UUID id;
 
     @NotEmpty(message = "First name cannot be empty")
-    @Size(min = 2, max = 30, message = "First name should be between 2 and 30 characters long")
-    @Pattern(regexp = "^[A-Za-z\\\\p{L}]+$", message = "Make sure you don't use numbers or symbols in your first name")
+    @Size(min = 1, max = 40, message = "First name should be between 1 and 40 characters long")
+    @Pattern(regexp = "^[A-Za-z-' ]+$", message = "Make sure you don't use numbers or symbols in your first name")
     private String firstName;
 
-    @NotEmpty(message = "Last name cannot be empty")
-    @Size(min = 2, max = 30, message = "Last name should be between 2 and 30 characters long")
-    @Pattern(regexp = "^[A-Za-z\\\\p{L}]+$", message = "Make sure you don't use numbers or symbols in your last name")
+    @Size(max = 50, message = "Last name should be less than 50 characters")
     private String lastName;
 
     @Email(message = "Email should be valid")
