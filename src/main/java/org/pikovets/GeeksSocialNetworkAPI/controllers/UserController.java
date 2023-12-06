@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import org.modelmapper.ModelMapper;
 import org.pikovets.GeeksSocialNetworkAPI.core.ErrorUtils;
 import org.pikovets.GeeksSocialNetworkAPI.dto.post.CreatePostRequest;
@@ -26,8 +25,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:8080")
 @RequestMapping("/users")
-@Tag(name = "User")
 public class UserController {
     private final UserService userService;
     private final ModelMapper modelMapper;
@@ -99,7 +98,7 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<UserDTO> getCurrentUser(@PathVariable("id") UUID id) {
+    public ResponseEntity<UserDTO> getCurrentUser() {
         return new ResponseEntity<>(convertToUserDTO(userService.getUserById(authenticationFacade.getUserID())), HttpStatus.OK);
     }
 
