@@ -23,11 +23,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:8080")
 @RequestMapping("/users")
-@Tag(name = "User")
 public class UserController {
     private final UserService userService;
     private final ModelMapper modelMapper;
@@ -99,7 +100,7 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<UserDTO> getCurrentUser(@PathVariable("id") UUID id) {
+    public ResponseEntity<UserDTO> getCurrentUser() {
         return new ResponseEntity<>(convertToUserDTO(userService.getUserById(authenticationFacade.getUserID())), HttpStatus.OK);
     }
 

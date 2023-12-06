@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:8080")
 @RequestMapping("/profiles")
 public class ProfileController {
     private final ProfileService profileService;
@@ -28,7 +29,6 @@ public class ProfileController {
 
     @GetMapping("/me")
     public ResponseEntity<ProfileDTO> getCurrentUserProfile() {
-        System.out.println(authenticationFacade.getUserID());
         return new ResponseEntity<>(convertToProfileDTO(profileService.getProfileByUserId(authenticationFacade.getUserID())), HttpStatus.OK);
     }
 
@@ -43,7 +43,17 @@ public class ProfileController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @PatchMapping("/me")
+    public ResponseEntity<HttpStatus> editCurrentUserProfile(@RequestBody ProfileDTO profileDTO) {
+        profileService.edit(convertToProfile(profileDTO), authenticationFacade.getUserID());
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
     public ProfileDTO convertToProfileDTO(Profile profile) {
         return modelMapper.map(profile, ProfileDTO.class);
+    }
+
+    public Profile convertToProfile(ProfileDTO profileDTO) {
+        return modelMapper.map(profileDTO, Profile.class);
     }
 }
