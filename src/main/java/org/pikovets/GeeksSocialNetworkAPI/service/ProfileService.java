@@ -34,9 +34,4 @@ public class ProfileService {
 
         profileRepository.save(profile);
     }
-
-    @Transactional
-    public void edit(Profile profile, UUID userId) {
-        profile.setId(userId);
-    }
 }
