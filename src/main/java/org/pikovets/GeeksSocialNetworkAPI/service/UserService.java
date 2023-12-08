@@ -69,7 +69,7 @@ public class UserService {
         }
 
         if (newUser.getLastName() != null && !newUser.getLastName().isEmpty()) {
-            mergedUser.setFirstName(newUser.getLastName());
+            mergedUser.setLastName(newUser.getLastName());
         }
 
         if (newUser.getEmail() != null && !newUser.getEmail().isEmpty()) {

@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.modelmapper.ModelMapper;
 import org.pikovets.GeeksSocialNetworkAPI.dto.profile.ProfileDTO;
+import org.pikovets.GeeksSocialNetworkAPI.dto.profile.UserProfileDTO;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.ErrorObject;
 import org.pikovets.GeeksSocialNetworkAPI.model.Profile;
 import org.pikovets.GeeksSocialNetworkAPI.security.IAuthenticationFacade;
@@ -80,11 +81,11 @@ public class ProfileController {
         return new ResponseEntity<>(convertToProfileDTO(profileService.getProfileByUserId(userId)), HttpStatus.OK);
     }
 
-//    @PatchMapping("/me")
-//    public ResponseEntity<HttpStatus> editCurrentUserProfile(@RequestBody ProfileDTO profileDTO) {
-//        profileService.edit(convertToProfile(profileDTO), authenticationFacade.getUserID());
-//        return new ResponseEntity<>(HttpStatus.OK);
-//    }
+    @PatchMapping("/me")
+    public ResponseEntity<HttpStatus> editCurrentUserProfile(@RequestBody UserProfileDTO userProfileDTO) {
+        profileService.edit(userProfileDTO.getUser(), userProfileDTO.getProfile(), authenticationFacade.getUserID());
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
 
     public ProfileDTO convertToProfileDTO(Profile profile) {
         return modelMapper.map(profile, ProfileDTO.class);

@@ -37,7 +37,7 @@ public class AuthService {
     }
 
     @Transactional
-    public void registerUser(SignUpDTO registeredUser) {
+    public User registerUser(SignUpDTO registeredUser) {
         User user = new User();
         String[] names = registeredUser.getFullName().split(" ", 2);
 
@@ -51,6 +51,8 @@ public class AuthService {
         userRepository.save(user);
 
         profileService.saveEmptyProfile(user.getId());
+
+        return user;
     }
 
     @Transactional
