@@ -37,12 +37,15 @@ public class ProfileService {
     }
 
     @Transactional
-    public void edit(User updatedUser, Profile updatedProfile, UUID userId) {
+    public void update(User updatedUser, Profile updatedProfile, UUID userId) {
         User userToBeUpdated = userService.getUserById(userId);
         Profile profileToBeUpdated = getProfileByUserId(userId);
 
         userService.mergeUsers(userToBeUpdated, updatedUser);
         mergeProfiles(profileToBeUpdated, updatedProfile);
+
+        userService.updateUser(updatedUser, userId);
+        profileRepository.save(updatedProfile);
     }
 
     public void mergeProfiles(Profile profileToBeUpdated, Profile newProfile) {
@@ -50,11 +53,11 @@ public class ProfileService {
                 ? newProfile.getBio()
                 : profileToBeUpdated.getBio());
 
-        profileToBeUpdated.setBio((newProfile.getSex() != null && !newProfile.getSex().isEmpty())
+        profileToBeUpdated.setSex((newProfile.getSex() != null && !newProfile.getSex().isEmpty())
                 ? newProfile.getSex()
                 : profileToBeUpdated.getSex());
 
-        profileToBeUpdated.setBio((newProfile.getAddress() != null && !newProfile.getAddress().isEmpty())
+        profileToBeUpdated.setAddress((newProfile.getAddress() != null && !newProfile.getAddress().isEmpty())
                 ? newProfile.getAddress()
                 : profileToBeUpdated.getAddress());
 

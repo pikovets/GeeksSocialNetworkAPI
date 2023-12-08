@@ -83,7 +83,7 @@ public class ProfileController {
 
     @PatchMapping("/me")
     public ResponseEntity<HttpStatus> editCurrentUserProfile(@RequestBody UserProfileDTO userProfileDTO) {
-        profileService.edit(userProfileDTO.getUser(), userProfileDTO.getProfile(), authenticationFacade.getUserID());
+        profileService.update(userProfileDTO.getUser(), userProfileDTO.getProfile(), authenticationFacade.getUserID());
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
