@@ -2,11 +2,15 @@ package org.pikovets.GeeksSocialNetworkAPI.dto.profile;
 
 import jakarta.persistence.Column;
 import jakarta.validation.constraints.Max;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Date;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class ProfileDTO {
     @Column(name = "bio")
     @Max(value = 150, message = "Bio should be less than 150 characters long")

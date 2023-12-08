@@ -6,9 +6,11 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class SignUpDTO {
     @NotEmpty(message = "Full name cannot be empty")
     @Size(min = 1, max = 70, message = "Full name should be between 1 and 70 characters long")

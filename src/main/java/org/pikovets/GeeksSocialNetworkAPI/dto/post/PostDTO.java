@@ -2,11 +2,15 @@ package org.pikovets.GeeksSocialNetworkAPI.dto.post;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class PostDTO {
     private UUID id;
 
