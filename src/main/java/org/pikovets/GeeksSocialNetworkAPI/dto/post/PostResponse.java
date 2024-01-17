@@ -1,4 +1,4 @@
-package org.pikovets.GeeksSocialNetworkAPI.dto.user;
+package org.pikovets.GeeksSocialNetworkAPI.dto.post;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,6 +9,6 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserResponse {
-    private List<UserDTO> users;
+public class PostResponse {
+    private List<PostDTO> posts;
 }

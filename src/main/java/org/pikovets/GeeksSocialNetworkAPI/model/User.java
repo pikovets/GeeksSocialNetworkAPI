@@ -2,6 +2,7 @@ package org.pikovets.GeeksSocialNetworkAPI.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -15,6 +16,7 @@ import java.util.UUID;
 
 @Entity
 @Data
+@AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "\"user\"")
 public class User implements UserDetails {
@@ -40,6 +42,9 @@ public class User implements UserDetails {
     @NotEmpty(message = "Password cannot be empty")
     @Column(name = "password")
     private String password;
+
+    @Column(name = "photo_link")
+    private String photoLink;
 
     @NotNull
     @Column(name = "is_active")
@@ -98,5 +103,32 @@ public class User implements UserDetails {
         user.setPassword(this.getPassword());
 
         return user;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", email='" + email + '\'' +
+                ", password='" + password + '\'' +
+                ", photoLink='" + photoLink + '\'' +
+                ", isActive=" + isActive +
+                ", role=" + role +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof User user)) return false;
+
+        return email.equals(user.email);
+    }
+
+    @Override
+    public int hashCode() {
+        return email.hashCode();
     }
 }
