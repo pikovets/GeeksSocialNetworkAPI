@@ -49,6 +49,10 @@ public class UserService {
         userRepository.delete(deletedUser);
     }
 
+    public List<User> getUsersByName(String name) {
+        return userRepository.findAll().stream().filter(user -> (user.getFirstName() + user.getLastName()).contains(name)).toList();
+    }
+
     public void enrichUser(User expandableUser, UUID id) {
         User userHelper = userRepository.findById(id).orElseThrow(new NotFoundException("User not found"));
 

@@ -1,19 +1,29 @@
 package org.pikovets.GeeksSocialNetworkAPI.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
+import org.pikovets.GeeksSocialNetworkAPI.core.ErrorUtils;
+import org.pikovets.GeeksSocialNetworkAPI.dto.post.CreatePostRequest;
+import org.pikovets.GeeksSocialNetworkAPI.dto.post.PostDTO;
+import org.pikovets.GeeksSocialNetworkAPI.dto.post.PostResponse;
 import org.pikovets.GeeksSocialNetworkAPI.dto.profile.ProfileDTO;
 import org.pikovets.GeeksSocialNetworkAPI.dto.profile.UserProfileDTO;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.ErrorObject;
+import org.pikovets.GeeksSocialNetworkAPI.model.Post;
 import org.pikovets.GeeksSocialNetworkAPI.model.Profile;
 import org.pikovets.GeeksSocialNetworkAPI.security.IAuthenticationFacade;
+import org.pikovets.GeeksSocialNetworkAPI.service.PostService;
 import org.pikovets.GeeksSocialNetworkAPI.service.ProfileService;
+import org.pikovets.GeeksSocialNetworkAPI.validator.UserValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -23,14 +33,18 @@ import java.util.UUID;
 @RequestMapping("/profiles")
 public class ProfileController {
     private final ProfileService profileService;
+    private final UserValidator userValidator;
     private final ModelMapper modelMapper;
     private final IAuthenticationFacade authenticationFacade;
+    private final PostService postService;
 
     @Autowired
-    ProfileController(ProfileService profileService, ModelMapper modelMapper, IAuthenticationFacade authenticationFacade) {
+    ProfileController(ProfileService profileService, UserValidator userValidator, ModelMapper modelMapper, IAuthenticationFacade authenticationFacade, PostService postService) {
         this.profileService = profileService;
+        this.userValidator = userValidator;
         this.modelMapper = modelMapper;
         this.authenticationFacade = authenticationFacade;
+        this.postService = postService;
     }
 
     @Operation(
@@ -82,9 +96,66 @@ public class ProfileController {
     }
 
     @PatchMapping("/me")
-    public ResponseEntity<HttpStatus> editCurrentUserProfile(@RequestBody UserProfileDTO userProfileDTO) {
-        profileService.update(userProfileDTO.getUser(), userProfileDTO.getProfile(), authenticationFacade.getUserID());
+    public ResponseEntity<HttpStatus> updateCurrentUserData(@RequestBody @Valid UserProfileDTO userProfileDTO, BindingResult bindingResult) {
+        userValidator.validate(userProfileDTO, bindingResult);
+        if (bindingResult.hasErrors()) {
+            ErrorUtils.returnBadRequestException(bindingResult);
+        }
+
+        profileService.updateUser(userProfileDTO, authenticationFacade.getUserID());
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @Operation(
+            summary = "Create post",
+            description = "Creates a post on the my wall",
+            parameters = {
+                    @Parameter(
+                            name = "id",
+                            description = "Post author id"
+                    )
+            },
+            responses = {
+                    @ApiResponse(
+                            description = "Success",
+                            responseCode = "200"
+                    ),
+                    @ApiResponse(
+                            description = "Bad Request",
+                            responseCode = "400",
+                            content = @Content(schema = @Schema(implementation = ErrorObject.class))
+                    ),
+                    @ApiResponse(
+                            description = "Unauthorized / Invalid Token",
+                            responseCode = "403"
+                    )
+            }
+    )
+    @PostMapping("/me/wall")
+    public ResponseEntity<HttpStatus> createPost(@RequestBody CreatePostRequest createRequest) {
+        postService.createPost(authenticationFacade.getUserID(), createRequest);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}/wall")
+    public ResponseEntity<PostResponse> getPosts(@PathVariable("id") String userId) {
+        UUID userUUID = null;
+        if (userId.equals("me")) {
+            userUUID = authenticationFacade.getUserID();
+        } else {
+            userUUID = UUID.fromString(userId);
+        }
+
+        return new ResponseEntity<>(
+                new PostResponse(postService.getPosts(userUUID).stream().map(this::convertToPostDTO).toList()), HttpStatus.OK);
+    }
+
+    public PostDTO convertToPostDTO(Post post) {
+        return modelMapper.map(post, PostDTO.class);
+    }
+
+    public Post convertToPost(PostDTO postDTO) {
+        return modelMapper.map(postDTO, Post.class);
     }
 
     public ProfileDTO convertToProfileDTO(Profile profile) {

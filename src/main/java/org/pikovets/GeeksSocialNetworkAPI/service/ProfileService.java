@@ -1,9 +1,12 @@
 package org.pikovets.GeeksSocialNetworkAPI.service;
 
+import org.pikovets.GeeksSocialNetworkAPI.dto.profile.UserProfileDTO;
+import org.pikovets.GeeksSocialNetworkAPI.dto.user.UserUpdateDTO;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotFoundException;
 import org.pikovets.GeeksSocialNetworkAPI.model.Profile;
 import org.pikovets.GeeksSocialNetworkAPI.model.User;
 import org.pikovets.GeeksSocialNetworkAPI.repository.ProfileRepository;
+import org.pikovets.GeeksSocialNetworkAPI.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,14 +19,16 @@ import java.util.UUID;
 public class ProfileService {
     private final ProfileRepository profileRepository;
     private final UserService userService;
+    private final UserRepository userRepository;
 
     @Autowired
-    public ProfileService(ProfileRepository profileRepository, UserService userService) {
+    public ProfileService(ProfileRepository profileRepository, UserService userService, UserRepository userRepository) {
         this.profileRepository = profileRepository;
         this.userService = userService;
+        this.userRepository = userRepository;
     }
 
-    public Profile getProfileByUserId(UUID userId) {
+    public Profile  getProfileByUserId(UUID userId) {
         return profileRepository.findByUserId(userId).orElseThrow(new NotFoundException("User not found"));
     }
 
@@ -37,15 +42,45 @@ public class ProfileService {
     }
 
     @Transactional
-    public void update(User updatedUser, Profile updatedProfile, UUID userId) {
-        User userToBeUpdated = userService.getUserById(userId);
-        Profile profileToBeUpdated = getProfileByUserId(userId);
+    public void updateUser(UserProfileDTO userProfileDTO, UUID userID) {
+        User currentUser = userService.getUserById(userID);
+        Profile currentProfile = getProfileByUserId(userID);
 
-        userService.mergeUsers(userToBeUpdated, updatedUser);
-        mergeProfiles(profileToBeUpdated, updatedProfile);
+        updateUser(currentUser, currentProfile, userProfileDTO);
+    }
 
-        userService.updateUser(updatedUser, userId);
+    @Transactional
+    public void updateUser(User currentUser, Profile currentProfile, UserProfileDTO userProfileDTO) {
+        UserUpdateDTO updatedUser = userProfileDTO.getUser();
+        Profile updatedProfile = userProfileDTO.getProfile();
+
+        updateUserFields(currentUser, updatedUser);
+        mergeProfiles(currentProfile, updatedProfile);
+
+        userRepository.save(currentUser);
         profileRepository.save(updatedProfile);
+    }
+
+    public void updateUserFields(User userToBeUpdated, UserUpdateDTO updatedUser) {
+        if (updatedUser.getFirstName() != null) {
+            userToBeUpdated.setFirstName(updatedUser.getFirstName());
+        }
+
+        if (updatedUser.getLastName() != null) {
+            userToBeUpdated.setLastName(updatedUser.getLastName());
+        }
+
+        if (updatedUser.getEmail() != null) {
+            userToBeUpdated.setEmail(updatedUser.getEmail());
+        }
+
+        if(updatedUser.getNewPassword() != null) {
+            userToBeUpdated.setPassword(updatedUser.getNewPassword());
+        }
+
+        if (updatedUser.getPhotoLink() != null) {
+            userToBeUpdated.setPhotoLink(updatedUser.getPhotoLink());
+        }
     }
 
     public void mergeProfiles(Profile profileToBeUpdated, Profile newProfile) {

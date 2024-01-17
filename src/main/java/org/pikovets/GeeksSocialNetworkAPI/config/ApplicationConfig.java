@@ -17,7 +17,6 @@ import java.util.UUID;
 
 @Configuration
 public class ApplicationConfig {
-
     private final UserRepository userRepository;
 
     @Autowired

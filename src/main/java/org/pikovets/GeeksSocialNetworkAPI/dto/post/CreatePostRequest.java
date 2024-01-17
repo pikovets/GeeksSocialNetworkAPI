@@ -10,7 +10,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CreatePostRequest {
-    @NotEmpty(message = "The post text cannot be blank")
     @Size(min = 1, max = 2200, message = "The post text should contain between 0 and 2200 characters")
     private String text;
+
+    @Size(max = 255, message = "The photo link must be under 255 characters")
+    private String photoLink;
 }

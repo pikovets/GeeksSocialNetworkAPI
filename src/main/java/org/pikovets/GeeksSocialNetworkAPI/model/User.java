@@ -43,6 +43,9 @@ public class User implements UserDetails {
     @Column(name = "password")
     private String password;
 
+    @Column(name = "photo_link")
+    private String photoLink;
+
     @NotNull
     @Column(name = "is_active")
     private Boolean isActive;
@@ -100,5 +103,32 @@ public class User implements UserDetails {
         user.setPassword(this.getPassword());
 
         return user;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", email='" + email + '\'' +
+                ", password='" + password + '\'' +
+                ", photoLink='" + photoLink + '\'' +
+                ", isActive=" + isActive +
+                ", role=" + role +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof User user)) return false;
+
+        return email.equals(user.email);
+    }
+
+    @Override
+    public int hashCode() {
+        return email.hashCode();
     }
 }
