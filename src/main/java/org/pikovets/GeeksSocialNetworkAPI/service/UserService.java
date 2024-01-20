@@ -1,7 +1,9 @@
 package org.pikovets.GeeksSocialNetworkAPI.service;
 
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotFoundException;
+import org.pikovets.GeeksSocialNetworkAPI.model.RelationshipType;
 import org.pikovets.GeeksSocialNetworkAPI.model.User;
+import org.pikovets.GeeksSocialNetworkAPI.model.UserRelationship;
 import org.pikovets.GeeksSocialNetworkAPI.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -52,6 +54,7 @@ public class UserService {
     public List<User> getUsersByName(String name) {
         return userRepository.findAll().stream().filter(user -> (user.getFirstName() + user.getLastName()).contains(name)).toList();
     }
+
 
     public void enrichUser(User expandableUser, UUID id) {
         User userHelper = userRepository.findById(id).orElseThrow(new NotFoundException("User not found"));

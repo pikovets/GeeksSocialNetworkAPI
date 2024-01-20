@@ -6,23 +6,20 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.modelmapper.ModelMapper;
-import org.pikovets.GeeksSocialNetworkAPI.core.ErrorUtils;
-import org.pikovets.GeeksSocialNetworkAPI.dto.post.CreatePostRequest;
 import org.pikovets.GeeksSocialNetworkAPI.dto.user.UserDTO;
 import org.pikovets.GeeksSocialNetworkAPI.dto.user.UserResponse;
+import org.pikovets.GeeksSocialNetworkAPI.dto.user_relationship.UserRelationshipDTO;
+import org.pikovets.GeeksSocialNetworkAPI.dto.user_relationship.UserRelationshipResponse;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.ErrorObject;
 import org.pikovets.GeeksSocialNetworkAPI.model.User;
+import org.pikovets.GeeksSocialNetworkAPI.model.UserRelationship;
 import org.pikovets.GeeksSocialNetworkAPI.security.IAuthenticationFacade;
-import org.pikovets.GeeksSocialNetworkAPI.service.PostService;
 import org.pikovets.GeeksSocialNetworkAPI.service.UserService;
-import org.pikovets.GeeksSocialNetworkAPI.validator.UserValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -73,7 +70,7 @@ public class UserController {
         return modelMapper.map(user, UserDTO.class);
     }
 
-    public User convertToUser(UserDTO userDTO) {
-        return modelMapper.map(userDTO, User.class);
+    public UserRelationshipDTO convertToUserRelationshipDTO(UserRelationship userRelationship) {
+        return modelMapper.map(userRelationship, UserRelationshipDTO.class);
     }
 }

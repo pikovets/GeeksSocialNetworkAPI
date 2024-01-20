@@ -7,7 +7,11 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.pikovets.GeeksSocialNetworkAPI.dto.user_relationship.UserRelationshipDTO;
+import org.pikovets.GeeksSocialNetworkAPI.model.UserRelationship;
 
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -29,4 +33,8 @@ public class UserDTO {
     private String email;
 
     private String photoLink;
+
+    private Set<UserRelationshipDTO> friendshipsRequested;
+
+    private Set<UserRelationshipDTO> friendshipsAccepted;
 }
