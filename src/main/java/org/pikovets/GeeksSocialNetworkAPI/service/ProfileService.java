@@ -8,6 +8,7 @@ import org.pikovets.GeeksSocialNetworkAPI.model.User;
 import org.pikovets.GeeksSocialNetworkAPI.repository.ProfileRepository;
 import org.pikovets.GeeksSocialNetworkAPI.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,15 +21,17 @@ public class ProfileService {
     private final ProfileRepository profileRepository;
     private final UserService userService;
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public ProfileService(ProfileRepository profileRepository, UserService userService, UserRepository userRepository) {
+    public ProfileService(ProfileRepository profileRepository, UserService userService, UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.profileRepository = profileRepository;
         this.userService = userService;
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
-    public Profile  getProfileByUserId(UUID userId) {
+    public Profile getProfileByUserId(UUID userId) {
         return profileRepository.findByUserId(userId).orElseThrow(new NotFoundException("User not found"));
     }
 
@@ -74,8 +77,8 @@ public class ProfileService {
             userToBeUpdated.setEmail(updatedUser.getEmail());
         }
 
-        if(updatedUser.getNewPassword() != null) {
-            userToBeUpdated.setPassword(updatedUser.getNewPassword());
+        if (updatedUser.getNewPassword() != null) {
+            userToBeUpdated.setPassword(passwordEncoder.encode(updatedUser.getNewPassword()));
         }
 
         if (updatedUser.getPhotoLink() != null) {

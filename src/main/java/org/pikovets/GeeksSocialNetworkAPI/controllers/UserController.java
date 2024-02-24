@@ -8,11 +8,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.modelmapper.ModelMapper;
 import org.pikovets.GeeksSocialNetworkAPI.dto.user.UserDTO;
 import org.pikovets.GeeksSocialNetworkAPI.dto.user.UserResponse;
-import org.pikovets.GeeksSocialNetworkAPI.dto.user_relationship.UserRelationshipDTO;
-import org.pikovets.GeeksSocialNetworkAPI.dto.user_relationship.UserRelationshipResponse;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.ErrorObject;
 import org.pikovets.GeeksSocialNetworkAPI.model.User;
-import org.pikovets.GeeksSocialNetworkAPI.model.UserRelationship;
 import org.pikovets.GeeksSocialNetworkAPI.security.IAuthenticationFacade;
 import org.pikovets.GeeksSocialNetworkAPI.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,11 +63,22 @@ public class UserController {
         return new ResponseEntity<>(new UserResponse(userService.getUsersByName(name).stream().map(this::convertToUserDTO).toList()), HttpStatus.OK);
     }
 
-    public UserDTO convertToUserDTO(User user) {
-        return modelMapper.map(user, UserDTO.class);
+    @GetMapping("/me/getFriends")
+    public ResponseEntity<UserResponse> getFriends() {
+        return new ResponseEntity<>(new UserResponse(userService.getFriends(authenticationFacade.getUserID()).stream().map(this::convertToUserDTO).toList()), HttpStatus.OK);
     }
 
-    public UserRelationshipDTO convertToUserRelationshipDTO(UserRelationship userRelationship) {
-        return modelMapper.map(userRelationship, UserRelationshipDTO.class);
+    @GetMapping("/{id}/getFriends")
+    public ResponseEntity<UserResponse> getFriends(@PathVariable("id") UUID userId) {
+        return new ResponseEntity<>(new UserResponse(userService.getFriends(userId).stream().map(this::convertToUserDTO).toList()), HttpStatus.OK);
+    }
+
+    @GetMapping("/me/getAcceptFriendRequests")
+    public ResponseEntity<UserResponse> getAcceptFriendRequests() {
+        return new ResponseEntity<>(new UserResponse(userService.getAcceptFriendRequests(authenticationFacade.getUserID()).stream().map(this::convertToUserDTO).toList()), HttpStatus.OK);
+    }
+
+    public UserDTO convertToUserDTO(User user) {
+        return modelMapper.map(user, UserDTO.class);
     }
 }

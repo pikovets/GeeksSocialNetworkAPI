@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -77,6 +78,12 @@ public class PostService {
             post.getLikes().add(postLike);
             postLikeRepository.save(postLike);
         }
+    }
+
+    public List<Post> getFeed(UUID authUserId) {
+        return userService.getFriends(authUserId).stream()
+                .flatMap(user -> user.getPosts().stream())
+                .collect(Collectors.toList());
     }
 
     public void enrichPost(UUID authorID, Post post) {

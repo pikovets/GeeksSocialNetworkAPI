@@ -4,19 +4,24 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.pikovets.GeeksSocialNetworkAPI.dto.user.UserDTO;
 import org.pikovets.GeeksSocialNetworkAPI.model.RelationshipType;
-import org.pikovets.GeeksSocialNetworkAPI.model.User;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserRelationshipDTO {
     @NotNull
-    private User requester;
+    private UserDTO requester;
 
     @NotNull
-    private User acceptor;
+    private UserDTO acceptor;
 
     @NotNull
-    private RelationshipType relationshipType;
+    private RelationshipType type;
+
+    @Override
+    public int hashCode() {
+        return requester.hashCode() + acceptor.hashCode();
+    }
 }

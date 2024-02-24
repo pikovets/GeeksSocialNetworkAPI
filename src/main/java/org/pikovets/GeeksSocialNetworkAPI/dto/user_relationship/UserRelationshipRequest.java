@@ -4,11 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.util.UUID;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserRelationshipResponse {
-    private List<UserRelationshipDTO> friends;
+public class UserRelationshipRequest {
+    private UUID userId;
 }

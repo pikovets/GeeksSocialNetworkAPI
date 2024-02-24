@@ -28,6 +28,7 @@ public class UserRelationship {
     private User acceptor;
 
     @NotNull
+    @Enumerated(EnumType.STRING)
     @Column(name = "type")
     private RelationshipType type;
 

@@ -1,9 +1,12 @@
 package org.pikovets.GeeksSocialNetworkAPI.service;
 
+import org.pikovets.GeeksSocialNetworkAPI.dto.user.UserDTO;
+import org.pikovets.GeeksSocialNetworkAPI.exceptions.BadRequestException;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotFoundException;
 import org.pikovets.GeeksSocialNetworkAPI.model.RelationshipType;
 import org.pikovets.GeeksSocialNetworkAPI.model.User;
 import org.pikovets.GeeksSocialNetworkAPI.model.UserRelationship;
+import org.pikovets.GeeksSocialNetworkAPI.repository.UserRelationshipRepository;
 import org.pikovets.GeeksSocialNetworkAPI.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -12,16 +15,19 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 @Service
 @Transactional(readOnly = true)
 public class UserService {
     private final UserRepository userRepository;
+    private final UserRelationshipRepository userRelationshipRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, UserRelationshipRepository userRelationshipRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.userRelationshipRepository = userRelationshipRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -55,6 +61,14 @@ public class UserService {
         return userRepository.findAll().stream().filter(user -> (user.getFirstName() + user.getLastName()).contains(name)).toList();
     }
 
+    public List<User> getFriends(UUID userId) {
+        return Stream.concat(getUserById(userId).getFriendshipsRequested().stream().filter(request -> request.getType().equals(RelationshipType.FRIENDS)).map(UserRelationship::getAcceptor),
+                getUserById(userId).getFriendshipsAccepted().stream().filter(request -> request.getType().equals(RelationshipType.FRIENDS)).map(UserRelationship::getRequester)).toList();
+    }
+
+    public List<User> getAcceptFriendRequests(UUID userId) {
+        return getUserById(userId).getFriendshipsAccepted().stream().filter(request -> request.getType().equals(RelationshipType.ACCEPTOR_PENDING)).map(UserRelationship::getRequester).toList();
+    }
 
     public void enrichUser(User expandableUser, UUID id) {
         User userHelper = userRepository.findById(id).orElseThrow(new NotFoundException("User not found"));
