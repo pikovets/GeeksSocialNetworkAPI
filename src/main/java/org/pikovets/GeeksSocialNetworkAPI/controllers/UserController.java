@@ -6,23 +6,17 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.modelmapper.ModelMapper;
-import org.pikovets.GeeksSocialNetworkAPI.core.ErrorUtils;
-import org.pikovets.GeeksSocialNetworkAPI.dto.post.CreatePostRequest;
 import org.pikovets.GeeksSocialNetworkAPI.dto.user.UserDTO;
 import org.pikovets.GeeksSocialNetworkAPI.dto.user.UserResponse;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.ErrorObject;
 import org.pikovets.GeeksSocialNetworkAPI.model.User;
 import org.pikovets.GeeksSocialNetworkAPI.security.IAuthenticationFacade;
-import org.pikovets.GeeksSocialNetworkAPI.service.PostService;
 import org.pikovets.GeeksSocialNetworkAPI.service.UserService;
-import org.pikovets.GeeksSocialNetworkAPI.validator.UserValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -69,11 +63,22 @@ public class UserController {
         return new ResponseEntity<>(new UserResponse(userService.getUsersByName(name).stream().map(this::convertToUserDTO).toList()), HttpStatus.OK);
     }
 
-    public UserDTO convertToUserDTO(User user) {
-        return modelMapper.map(user, UserDTO.class);
+    @GetMapping("/me/getFriends")
+    public ResponseEntity<UserResponse> getFriends() {
+        return new ResponseEntity<>(new UserResponse(userService.getFriends(authenticationFacade.getUserID()).stream().map(this::convertToUserDTO).toList()), HttpStatus.OK);
     }
 
-    public User convertToUser(UserDTO userDTO) {
-        return modelMapper.map(userDTO, User.class);
+    @GetMapping("/{id}/getFriends")
+    public ResponseEntity<UserResponse> getFriends(@PathVariable("id") UUID userId) {
+        return new ResponseEntity<>(new UserResponse(userService.getFriends(userId).stream().map(this::convertToUserDTO).toList()), HttpStatus.OK);
+    }
+
+    @GetMapping("/me/getAcceptFriendRequests")
+    public ResponseEntity<UserResponse> getAcceptFriendRequests() {
+        return new ResponseEntity<>(new UserResponse(userService.getAcceptFriendRequests(authenticationFacade.getUserID()).stream().map(this::convertToUserDTO).toList()), HttpStatus.OK);
+    }
+
+    public UserDTO convertToUserDTO(User user) {
+        return modelMapper.map(user, UserDTO.class);
     }
 }

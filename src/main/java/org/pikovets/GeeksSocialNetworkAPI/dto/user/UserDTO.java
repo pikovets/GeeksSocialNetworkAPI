@@ -7,7 +7,12 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.pikovets.GeeksSocialNetworkAPI.dto.user_relationship.UserRelationshipDTO;
+import org.pikovets.GeeksSocialNetworkAPI.model.User;
+import org.pikovets.GeeksSocialNetworkAPI.model.UserRelationship;
 
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -29,4 +34,28 @@ public class UserDTO {
     private String email;
 
     private String photoLink;
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", email='" + email + '\'' +
+                ", photoLink='" + photoLink + '\'' +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof UserDTO user)) return false;
+
+        return email.equals(user.email);
+    }
+
+    @Override
+    public int hashCode() {
+        return email.hashCode();
+    }
 }

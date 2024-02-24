@@ -1,5 +1,9 @@
 package org.pikovets.GeeksSocialNetworkAPI.controllers;
 
+import org.modelmapper.ModelMapper;
+import org.pikovets.GeeksSocialNetworkAPI.dto.post.PostDTO;
+import org.pikovets.GeeksSocialNetworkAPI.dto.post.PostResponse;
+import org.pikovets.GeeksSocialNetworkAPI.model.Post;
 import org.pikovets.GeeksSocialNetworkAPI.security.IAuthenticationFacade;
 import org.pikovets.GeeksSocialNetworkAPI.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,11 +19,13 @@ import java.util.UUID;
 public class PostController {
     private final PostService postService;
     private final IAuthenticationFacade authenticationFacade;
+    private final ModelMapper modelMapper;
 
     @Autowired
-    public PostController(PostService postService, IAuthenticationFacade authenticationFacade) {
+    public PostController(PostService postService, IAuthenticationFacade authenticationFacade, ModelMapper modelMapper) {
         this.postService = postService;
         this.authenticationFacade = authenticationFacade;
+        this.modelMapper = modelMapper;
     }
 
     @DeleteMapping("/{id}")
@@ -32,5 +38,14 @@ public class PostController {
     public ResponseEntity<HttpStatus> toggleLike(@PathVariable("id") UUID postId) {
         postService.toggleLike(postId, authenticationFacade.getUserID());
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @GetMapping("/feed")
+    public ResponseEntity<PostResponse> getFeed() {
+        return new ResponseEntity<>(new PostResponse(postService.getFeed(authenticationFacade.getUserID()).stream().map(this::convertToPostDTO).toList()), HttpStatus.OK);
+    }
+
+    public PostDTO convertToPostDTO(Post post) {
+        return modelMapper.map(post, PostDTO.class);
     }
 }
