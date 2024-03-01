@@ -17,8 +17,8 @@ public class CommentLike {
 
     @NotNull
     @ManyToOne
-    @JoinColumn(name = "post_id", referencedColumnName = "id")
-    private Post post;
+    @JoinColumn(name = "comment_id", referencedColumnName = "id")
+    private Comment comment;
 
     @NotNull
     @ManyToOne

@@ -4,6 +4,7 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.pikovets.GeeksSocialNetworkAPI.dto.CommentDTO;
 import org.pikovets.GeeksSocialNetworkAPI.dto.PostLikeDTO;
 import org.pikovets.GeeksSocialNetworkAPI.dto.user.UserDTO;
 import org.pikovets.GeeksSocialNetworkAPI.model.PostLike;
@@ -30,4 +31,6 @@ public class PostDTO {
     private UserDTO author;
 
     private Set<PostLikeDTO> likes;
+
+    private Set<CommentDTO> comments;
 }
