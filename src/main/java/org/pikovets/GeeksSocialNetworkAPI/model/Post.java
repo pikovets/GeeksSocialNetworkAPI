@@ -42,6 +42,9 @@ public class Post {
     @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE)
     private Set<PostLike> likes;
 
+    @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE)
+    private Set<Comment> comments;
+
     @Override
     public String toString() {
         return "Post{" +
