@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.pikovets.GeeksSocialNetworkAPI.dto.user.UserDTO;
-import org.pikovets.GeeksSocialNetworkAPI.model.RelationshipType;
+import org.pikovets.GeeksSocialNetworkAPI.model.enums.RelationshipType;
 
 @Data
 @AllArgsConstructor

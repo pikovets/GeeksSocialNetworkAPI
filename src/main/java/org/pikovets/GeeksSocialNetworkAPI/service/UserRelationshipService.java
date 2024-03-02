@@ -2,12 +2,10 @@ package org.pikovets.GeeksSocialNetworkAPI.service;
 
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.BadRequestException;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotFoundException;
-import org.pikovets.GeeksSocialNetworkAPI.model.RelationshipType;
+import org.pikovets.GeeksSocialNetworkAPI.model.enums.RelationshipType;
 import org.pikovets.GeeksSocialNetworkAPI.model.UserRelationship;
 import org.pikovets.GeeksSocialNetworkAPI.repository.UserRelationshipRepository;
-import org.pikovets.GeeksSocialNetworkAPI.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
