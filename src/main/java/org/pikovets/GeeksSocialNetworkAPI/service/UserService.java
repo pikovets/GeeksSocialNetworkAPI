@@ -1,9 +1,7 @@
 package org.pikovets.GeeksSocialNetworkAPI.service;
 
-import org.pikovets.GeeksSocialNetworkAPI.dto.user.UserDTO;
-import org.pikovets.GeeksSocialNetworkAPI.exceptions.BadRequestException;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotFoundException;
-import org.pikovets.GeeksSocialNetworkAPI.model.RelationshipType;
+import org.pikovets.GeeksSocialNetworkAPI.model.enums.RelationshipType;
 import org.pikovets.GeeksSocialNetworkAPI.model.User;
 import org.pikovets.GeeksSocialNetworkAPI.model.UserRelationship;
 import org.pikovets.GeeksSocialNetworkAPI.repository.UserRelationshipRepository;

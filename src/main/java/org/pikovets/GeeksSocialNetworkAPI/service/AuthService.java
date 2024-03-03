@@ -5,7 +5,7 @@ import org.pikovets.GeeksSocialNetworkAPI.dto.TokenResponse;
 import org.pikovets.GeeksSocialNetworkAPI.dto.user.SignUpDTO;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.BadRequestException;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotFoundException;
-import org.pikovets.GeeksSocialNetworkAPI.model.Role;
+import org.pikovets.GeeksSocialNetworkAPI.model.enums.Role;
 import org.pikovets.GeeksSocialNetworkAPI.model.User;
 import org.pikovets.GeeksSocialNetworkAPI.repository.UserRepository;
 import org.pikovets.GeeksSocialNetworkAPI.security.JwtUtils;
