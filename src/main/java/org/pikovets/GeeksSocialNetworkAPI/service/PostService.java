@@ -1,10 +1,13 @@
 package org.pikovets.GeeksSocialNetworkAPI.service;
 
+import org.hibernate.annotations.NotFound;
 import org.pikovets.GeeksSocialNetworkAPI.dto.post.CreatePostRequest;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotFoundException;
+import org.pikovets.GeeksSocialNetworkAPI.model.Comment;
 import org.pikovets.GeeksSocialNetworkAPI.model.Post;
 import org.pikovets.GeeksSocialNetworkAPI.model.PostLike;
 import org.pikovets.GeeksSocialNetworkAPI.model.User;
+import org.pikovets.GeeksSocialNetworkAPI.repository.CommentRepository;
 import org.pikovets.GeeksSocialNetworkAPI.repository.PostLikeRepository;
 import org.pikovets.GeeksSocialNetworkAPI.repository.PostRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,12 +25,14 @@ import java.util.stream.Collectors;
 public class PostService {
     private final PostRepository postRepository;
     private final PostLikeRepository postLikeRepository;
+    private final CommentRepository commentRepository;
     private final UserService userService;
 
     @Autowired
-    public PostService(PostRepository postRepository, PostLikeRepository postLikeRepository, UserService userService) {
+    public PostService(PostRepository postRepository, PostLikeRepository postLikeRepository, CommentRepository commentRepository, UserService userService) {
         this.postRepository = postRepository;
         this.postLikeRepository = postLikeRepository;
+        this.commentRepository = commentRepository;
         this.userService = userService;
     }
 
@@ -86,8 +91,23 @@ public class PostService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
+    public void addComment(UUID postId, Comment comment) {
+        Post post = postRepository.findById(postId).orElseThrow(new NotFoundException("Post not found"));
+        enrichComment(comment);
+
+        comment.setPost(post);
+        post.getComments().add(comment);
+
+        commentRepository.save(comment);
+    }
+
     public void enrichPost(UUID authorID, Post post) {
         post.setAuthor(userService.getUserById(authorID));
         post.setDate(LocalDateTime.now());
+    }
+
+    public void enrichComment(Comment comment) {
+        comment.setDate(LocalDateTime.now());
     }
 }

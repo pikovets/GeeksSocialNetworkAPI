@@ -45,6 +45,9 @@ public class Post {
     @ManyToOne
     @JoinColumn(name = "community_id", referencedColumnName = "id")
     private Community community;
+  
+    @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE)
+    private Set<Comment> comments;
 
     @Override
     public String toString() {

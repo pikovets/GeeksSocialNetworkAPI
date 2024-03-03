@@ -3,6 +3,7 @@ package org.pikovets.GeeksSocialNetworkAPI.controllers;
 import org.modelmapper.ModelMapper;
 import org.pikovets.GeeksSocialNetworkAPI.dto.post.PostDTO;
 import org.pikovets.GeeksSocialNetworkAPI.dto.post.PostResponse;
+import org.pikovets.GeeksSocialNetworkAPI.model.Comment;
 import org.pikovets.GeeksSocialNetworkAPI.model.Post;
 import org.pikovets.GeeksSocialNetworkAPI.security.IAuthenticationFacade;
 import org.pikovets.GeeksSocialNetworkAPI.service.PostService;
@@ -37,6 +38,12 @@ public class PostController {
     @PostMapping("/{id}/toggleLike")
     public ResponseEntity<HttpStatus> toggleLike(@PathVariable("id") UUID postId) {
         postService.toggleLike(postId, authenticationFacade.getUserID());
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PostMapping("/{id}/addComment")
+    public ResponseEntity<HttpStatus> addComment(@PathVariable("id") UUID postId, @RequestBody Comment comment) {
+        postService.addComment(postId, comment);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
