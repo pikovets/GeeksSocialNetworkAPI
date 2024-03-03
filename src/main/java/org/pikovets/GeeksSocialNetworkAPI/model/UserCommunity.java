@@ -16,6 +16,7 @@ import java.util.UUID;
 @IdClass(UserCommunity.UserCommunityId.class)
 @Table(name = "user_community")
 public class UserCommunity {
+
     @Id
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
@@ -31,21 +32,21 @@ public class UserCommunity {
     private Role userRole;
 
     public static class UserCommunityId implements Serializable {
-        private UUID userId;
-        private UUID communityId;
+        private UUID user;
+        private UUID community;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        UserCommunity userCommunity = (UserCommunity) o;
-        return Objects.equals(user.getId(), userCommunity.user.getId()) &&
-                Objects.equals(community.getId(), userCommunity.community.getId());
+        UserCommunity that = (UserCommunity) o;
+        return Objects.equals(user != null ? user.getId() : null, that.user != null ? that.user.getId() : null) &&
+                Objects.equals(community != null ? community.getId() : null, that.community != null ? that.community.getId() : null);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(user.getId(), community.getId());
+        return Objects.hash(user != null ? user.getId() : null, community != null ? community.getId() : null);
     }
 }
