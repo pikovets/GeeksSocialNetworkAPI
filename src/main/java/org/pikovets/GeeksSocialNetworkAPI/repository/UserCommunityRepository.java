@@ -7,5 +7,5 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface UserCommunityRepository extends JpaRepository<UserCommunity, UUID> {
-    Optional<UserCommunity> findByUserIdAndCommunityId(UUID userId, UUID communityId);
+    Optional<UserCommunity> findByCommunityIdAndUserId(UUID communityId, UUID userId);
 }

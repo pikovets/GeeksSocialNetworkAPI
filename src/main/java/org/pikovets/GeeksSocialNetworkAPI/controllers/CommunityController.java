@@ -44,6 +44,12 @@ public class CommunityController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @DeleteMapping("{id}")
+    public ResponseEntity<HttpStatus> deleteCommunity(@PathVariable("id") UUID id) {
+        communityService.deleteById(id, authenticationFacade.getUserID());
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
     public CommunityDTO convertToCommunityDTO(Community community) {
         return modelMapper.map(community, CommunityDTO.class);
     }

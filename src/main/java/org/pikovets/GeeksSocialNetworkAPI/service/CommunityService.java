@@ -2,12 +2,15 @@ package org.pikovets.GeeksSocialNetworkAPI.service;
 
 import org.pikovets.GeeksSocialNetworkAPI.dto.community.CommunityResponse;
 import org.pikovets.GeeksSocialNetworkAPI.dto.community.CreateCommunityRequest;
+import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotAllowedException;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotFoundException;
 import org.pikovets.GeeksSocialNetworkAPI.model.Community;
+import org.pikovets.GeeksSocialNetworkAPI.model.User;
 import org.pikovets.GeeksSocialNetworkAPI.model.UserCommunity;
 import org.pikovets.GeeksSocialNetworkAPI.model.enums.Role;
 import org.pikovets.GeeksSocialNetworkAPI.repository.CommunityRepository;
 import org.pikovets.GeeksSocialNetworkAPI.repository.UserCommunityRepository;
+import org.pikovets.GeeksSocialNetworkAPI.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,11 +25,13 @@ import java.util.UUID;
 public class CommunityService {
     private final CommunityRepository communityRepository;
     private final UserCommunityRepository userCommunityRepository;
+    private final UserRepository userRepository;
 
     @Autowired
-    public CommunityService(CommunityRepository communityRepository, UserCommunityRepository userCommunityRepository) {
+    public CommunityService(CommunityRepository communityRepository, UserCommunityRepository userCommunityRepository, UserRepository userRepository) {
         this.communityRepository = communityRepository;
         this.userCommunityRepository = userCommunityRepository;
+        this.userRepository = userRepository;
     }
 
     public List<Community> getAll() {
@@ -34,7 +39,7 @@ public class CommunityService {
     }
 
     public Community getById(UUID communityId, UUID authUserId) {
-        Optional<UserCommunity> userCommunity = userCommunityRepository.findByUserIdAndCommunityId(authUserId, communityId);
+        Optional<UserCommunity> userCommunity = userCommunityRepository.findByCommunityIdAndUserId(communityId, authUserId);
 
         if (userCommunity.isEmpty()) {
             Community community = communityRepository.findById(communityId).orElseThrow(new NotFoundException("Community not found"));
@@ -56,5 +61,20 @@ public class CommunityService {
         community.setJoinType(communityRequest.getJoinType());
 
         communityRepository.save(community);
+
+        User user = userRepository.findById(adminId).orElseThrow(new NotFoundException("User not found"));
+        userCommunityRepository.save(new UserCommunity(user, community, Role.ADMIN));
+    }
+
+    @Transactional
+    public void deleteById(UUID communityId, UUID authUserId) {
+        Optional<UserCommunity> userCommunity = userCommunityRepository.findByCommunityIdAndUserId(communityId, authUserId);
+
+        if (userCommunity.isEmpty() || !userCommunity.get().getUserRole().equals(Role.ADMIN)) {
+            throw new NotAllowedException("User is not allowed to perform this action");
+        }
+
+        userCommunityRepository.delete(userCommunity.get());
+        communityRepository.deleteById(communityId);
     }
 }

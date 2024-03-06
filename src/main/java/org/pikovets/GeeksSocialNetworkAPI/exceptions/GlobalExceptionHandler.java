@@ -42,4 +42,15 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(errorObject, HttpStatus.UNAUTHORIZED);
     }
+
+    @ExceptionHandler(NotAllowedException.class)
+    public ResponseEntity<ErrorObject> handleContentNotAllowed(NotAllowedException ex) {
+        ErrorObject errorObject = new ErrorObject();
+
+        errorObject.setStatusCode(HttpStatus.METHOD_NOT_ALLOWED.value());
+        errorObject.setMessage(ex.getMessage());
+        errorObject.setTimestamp(new Date());
+
+        return new ResponseEntity<>(errorObject, HttpStatus.METHOD_NOT_ALLOWED);
+    }
 }

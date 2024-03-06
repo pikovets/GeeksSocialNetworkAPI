@@ -1,14 +1,12 @@
 package org.pikovets.GeeksSocialNetworkAPI.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -45,7 +43,7 @@ public class Post {
     @ManyToOne
     @JoinColumn(name = "community_id", referencedColumnName = "id")
     private Community community;
-  
+
     @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE)
     private Set<Comment> comments;
 
