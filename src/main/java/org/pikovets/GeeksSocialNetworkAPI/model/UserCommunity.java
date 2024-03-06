@@ -2,6 +2,7 @@ package org.pikovets.GeeksSocialNetworkAPI.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.pikovets.GeeksSocialNetworkAPI.model.enums.Role;
@@ -12,6 +13,7 @@ import java.util.UUID;
 
 @Entity
 @Data
+@AllArgsConstructor
 @NoArgsConstructor
 @IdClass(UserCommunity.UserCommunityId.class)
 @Table(name = "user_community")
@@ -23,11 +25,12 @@ public class UserCommunity {
     private User user;
 
     @Id
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "community_id", referencedColumnName = "id")
     private Community community;
 
     @NotNull
+    @Enumerated(EnumType.STRING)
     @Column(name = "user_role")
     private Role userRole;
 
