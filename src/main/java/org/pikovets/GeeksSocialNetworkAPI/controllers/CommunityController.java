@@ -62,6 +62,11 @@ public class CommunityController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @GetMapping("/searchByName")
+    public ResponseEntity<CommunityResponse> searchCommunityByName(@RequestParam(name = "name") String communityName) {
+        return new ResponseEntity<>(new CommunityResponse(communityService.searchCommunityByName(communityName).stream().map(this::convertToCommunityDTO).toList()), HttpStatus.OK);
+    }
+
     public CommunityDTO convertToCommunityDTO(Community community) {
         return modelMapper.map(community, CommunityDTO.class);
     }
