@@ -1,9 +1,14 @@
 package org.pikovets.GeeksSocialNetworkAPI.service;
 
+import org.pikovets.GeeksSocialNetworkAPI.dto.community.ChangeRoleRequest;
+import org.pikovets.GeeksSocialNetworkAPI.exceptions.BadRequestException;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotFoundException;
+import org.pikovets.GeeksSocialNetworkAPI.model.UserCommunity;
 import org.pikovets.GeeksSocialNetworkAPI.model.enums.RelationshipType;
 import org.pikovets.GeeksSocialNetworkAPI.model.User;
 import org.pikovets.GeeksSocialNetworkAPI.model.UserRelationship;
+import org.pikovets.GeeksSocialNetworkAPI.model.enums.Role;
+import org.pikovets.GeeksSocialNetworkAPI.repository.UserCommunityRepository;
 import org.pikovets.GeeksSocialNetworkAPI.repository.UserRelationshipRepository;
 import org.pikovets.GeeksSocialNetworkAPI.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -19,13 +25,13 @@ import java.util.stream.Stream;
 @Transactional(readOnly = true)
 public class UserService {
     private final UserRepository userRepository;
-    private final UserRelationshipRepository userRelationshipRepository;
+    private final UserCommunityRepository userCommunityRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserService(UserRepository userRepository, UserRelationshipRepository userRelationshipRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, UserRelationshipRepository userRelationshipRepository, UserCommunityRepository userCommunityRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
-        this.userRelationshipRepository = userRelationshipRepository;
+        this.userCommunityRepository = userCommunityRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -60,12 +66,25 @@ public class UserService {
     }
 
     public List<User> getFriends(UUID userId) {
-        return Stream.concat(getUserById(userId).getFriendshipsRequested().stream().filter(request -> request.getType().equals(RelationshipType.FRIENDS)).map(UserRelationship::getAcceptor),
-                getUserById(userId).getFriendshipsAccepted().stream().filter(request -> request.getType().equals(RelationshipType.FRIENDS)).map(UserRelationship::getRequester)).toList();
+        return Stream.concat(getUserById(userId).getFriendshipsRequested().stream().filter(request -> request.getType().equals(RelationshipType.FRIENDS)).map(UserRelationship::getAcceptor), getUserById(userId).getFriendshipsAccepted().stream().filter(request -> request.getType().equals(RelationshipType.FRIENDS)).map(UserRelationship::getRequester)).toList();
     }
 
     public List<User> getAcceptFriendRequests(UUID userId) {
         return getUserById(userId).getFriendshipsAccepted().stream().filter(request -> request.getType().equals(RelationshipType.ACCEPTOR_PENDING)).map(UserRelationship::getRequester).toList();
+    }
+
+    @Transactional
+    public void changeCommunityRole(UUID userId, ChangeRoleRequest changeRoleRequest, UUID authUserId) {
+        Optional<UserCommunity> authUserCommunity = userCommunityRepository.findByCommunityIdAndUserId(changeRoleRequest.getCommunityId(), authUserId);
+
+        if (authUserCommunity.isEmpty() || !authUserCommunity.get().getUserRole().equals(Role.ADMIN)) {
+            throw new BadRequestException("Authenticated user isn't an administrator of specified group");
+        }
+
+        UserCommunity userCommunity = userCommunityRepository.findByCommunityIdAndUserId(changeRoleRequest.getCommunityId(), userId)
+                .orElseThrow(new NotFoundException("User isn't a member of this group"));
+
+        userCommunity.setUserRole(changeRoleRequest.getNewRole());
     }
 
     public void enrichUser(User expandableUser, UUID id) {
