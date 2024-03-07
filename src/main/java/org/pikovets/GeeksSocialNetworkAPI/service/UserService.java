@@ -75,7 +75,7 @@ public class UserService {
 
     @Transactional
     public void changeCommunityRole(UUID userId, ChangeRoleRequest changeRoleRequest, UUID authUserId) {
-        Optional<UserCommunity> authUserCommunity = userCommunityRepository.findByCommunityIdAndUserId(authUserId, changeRoleRequest.getCommunityId());
+        Optional<UserCommunity> authUserCommunity = userCommunityRepository.findByCommunityIdAndUserId(changeRoleRequest.getCommunityId(), authUserId);
 
         if (authUserCommunity.isEmpty() || !authUserCommunity.get().getUserRole().equals(Role.ADMIN)) {
             throw new BadRequestException("Authenticated user isn't an administrator of specified group");
