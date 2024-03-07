@@ -25,13 +25,13 @@ import java.util.UUID;
 public class CommunityService {
     private final CommunityRepository communityRepository;
     private final UserCommunityRepository userCommunityRepository;
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     @Autowired
-    public CommunityService(CommunityRepository communityRepository, UserCommunityRepository userCommunityRepository, UserRepository userRepository) {
+    public CommunityService(CommunityRepository communityRepository, UserCommunityRepository userCommunityRepository, UserService userService) {
         this.communityRepository = communityRepository;
         this.userCommunityRepository = userCommunityRepository;
-        this.userRepository = userRepository;
+        this.userService = userService;
     }
 
     public List<Community> getAll() {
@@ -62,12 +62,12 @@ public class CommunityService {
 
         communityRepository.save(community);
 
-        User user = userRepository.findById(adminId).orElseThrow(new NotFoundException("User not found"));
-        userCommunityRepository.save(new UserCommunity(user, community, Role.ADMIN));
+        User admin = userService.getUserById(adminId);
+        userCommunityRepository.save(new UserCommunity(admin, community, Role.ADMIN));
     }
 
     @Transactional
-    public void deleteById(UUID communityId, UUID authUserId) {
+    public void deleteCommunityById(UUID communityId, UUID authUserId) {
         Optional<UserCommunity> userCommunity = userCommunityRepository.findByCommunityIdAndUserId(communityId, authUserId);
 
         if (userCommunity.isEmpty() || !userCommunity.get().getUserRole().equals(Role.ADMIN)) {
@@ -76,5 +76,15 @@ public class CommunityService {
 
         userCommunityRepository.delete(userCommunity.get());
         communityRepository.deleteById(communityId);
+    }
+
+    @Transactional
+    public void addMember(UUID communityId, UUID authUserId) {
+        userCommunityRepository.save(new UserCommunity(userService.getUserById(authUserId), communityRepository.findById(communityId).orElseThrow(new NotFoundException("Community not found")), Role.USER));
+    }
+
+    @Transactional
+    public void leaveCommunity(UUID communityId, UUID authUserId) {
+        userCommunityRepository.delete(userCommunityRepository.findByCommunityIdAndUserId(communityId, authUserId).orElseThrow(new NotFoundException("User not found in community")));
     }
 }

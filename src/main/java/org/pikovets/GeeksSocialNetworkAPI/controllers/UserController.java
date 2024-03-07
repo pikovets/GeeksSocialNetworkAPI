@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.modelmapper.ModelMapper;
+import org.pikovets.GeeksSocialNetworkAPI.dto.community.ChangeRoleRequest;
 import org.pikovets.GeeksSocialNetworkAPI.dto.user.UserDTO;
 import org.pikovets.GeeksSocialNetworkAPI.dto.user.UserResponse;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.ErrorObject;
@@ -76,6 +77,12 @@ public class UserController {
     @GetMapping("/me/getAcceptFriendRequests")
     public ResponseEntity<UserResponse> getAcceptFriendRequests() {
         return new ResponseEntity<>(new UserResponse(userService.getAcceptFriendRequests(authenticationFacade.getUserID()).stream().map(this::convertToUserDTO).toList()), HttpStatus.OK);
+    }
+
+    @PatchMapping("/{id}/changeRole")
+    public ResponseEntity<HttpStatus> changeCommunityRole(@PathVariable("id") UUID userId, @RequestBody ChangeRoleRequest changeRoleRequest) {
+        userService.changeCommunityRole(userId, changeRoleRequest, authenticationFacade.getUserID());
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     public UserDTO convertToUserDTO(User user) {
