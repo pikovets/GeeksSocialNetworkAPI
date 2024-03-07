@@ -87,4 +87,8 @@ public class CommunityService {
     public void leaveCommunity(UUID communityId, UUID authUserId) {
         userCommunityRepository.delete(userCommunityRepository.findByCommunityIdAndUserId(communityId, authUserId).orElseThrow(new NotFoundException("User not found in community")));
     }
+
+    public List<Community> searchCommunityByName(String name) {
+        return communityRepository.findByNameIgnoreCase(name);
+    }
 }
