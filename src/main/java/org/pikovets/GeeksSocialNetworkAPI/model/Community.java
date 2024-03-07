@@ -43,4 +43,7 @@ public class Community {
 
     @OneToMany(mappedBy = "community", cascade = CascadeType.REMOVE)
     private Set<Post> posts;
+
+    @OneToMany(mappedBy = "community", cascade = CascadeType.REMOVE)
+    private Set<UserCommunity> userCommunities;
 }

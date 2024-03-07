@@ -46,13 +46,19 @@ public class CommunityController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<HttpStatus> deleteCommunity(@PathVariable("id") UUID id) {
-        communityService.deleteById(id, authenticationFacade.getUserID());
+        communityService.deleteCommunityById(id, authenticationFacade.getUserID());
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PostMapping("/{id}/join")
     public ResponseEntity<HttpStatus> joinCommunity(@PathVariable("id") UUID communityId) {
         communityService.addMember(communityId, authenticationFacade.getUserID());
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{id}/leave")
+    public ResponseEntity<HttpStatus> leaveCommunity(@PathVariable("id") UUID communityId) {
+        communityService.leaveCommunity(communityId, authenticationFacade.getUserID());
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

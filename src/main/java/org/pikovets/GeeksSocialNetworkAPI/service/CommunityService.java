@@ -67,7 +67,7 @@ public class CommunityService {
     }
 
     @Transactional
-    public void deleteById(UUID communityId, UUID authUserId) {
+    public void deleteCommunityById(UUID communityId, UUID authUserId) {
         Optional<UserCommunity> userCommunity = userCommunityRepository.findByCommunityIdAndUserId(communityId, authUserId);
 
         if (userCommunity.isEmpty() || !userCommunity.get().getUserRole().equals(Role.ADMIN)) {
@@ -81,5 +81,10 @@ public class CommunityService {
     @Transactional
     public void addMember(UUID communityId, UUID authUserId) {
         userCommunityRepository.save(new UserCommunity(userService.getUserById(authUserId), communityRepository.findById(communityId).orElseThrow(new NotFoundException("Community not found")), Role.USER));
+    }
+
+    @Transactional
+    public void leaveCommunity(UUID communityId, UUID authUserId) {
+        userCommunityRepository.delete(userCommunityRepository.findByCommunityIdAndUserId(communityId, authUserId).orElseThrow(new NotFoundException("User not found in community")));
     }
 }

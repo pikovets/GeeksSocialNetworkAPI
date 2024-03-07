@@ -25,7 +25,7 @@ public class UserCommunity {
     private User user;
 
     @Id
-    @ManyToOne(cascade = CascadeType.REMOVE)
+    @ManyToOne
     @JoinColumn(name = "community_id", referencedColumnName = "id")
     private Community community;
 
