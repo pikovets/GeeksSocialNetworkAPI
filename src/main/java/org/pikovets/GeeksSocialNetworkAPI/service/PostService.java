@@ -36,6 +36,10 @@ public class PostService {
         this.userService = userService;
     }
 
+    public Post getPost(UUID postId) {
+        return postRepository.findById(postId).orElseThrow(new NotFoundException("Post not found"));
+    }
+
     @Transactional
     public void createPost(UUID authorId, CreatePostRequest createRequest) {
         Post post = new Post();

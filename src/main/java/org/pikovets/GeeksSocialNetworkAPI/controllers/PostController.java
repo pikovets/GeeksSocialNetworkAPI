@@ -29,6 +29,11 @@ public class PostController {
         this.modelMapper = modelMapper;
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<PostDTO> getPost(@PathVariable("id") UUID postId) {
+        return new ResponseEntity<>(convertToPostDTO(postService.getPost(postId)), HttpStatus.OK);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<HttpStatus> deletePost(@PathVariable("id") UUID postId) {
         postService.deletePost(postId, authenticationFacade.getUserID());
