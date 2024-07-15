@@ -2,6 +2,8 @@ package org.pikovets.GeeksSocialNetworkAPI.service;
 
 import org.hibernate.annotations.NotFound;
 import org.pikovets.GeeksSocialNetworkAPI.dto.post.CreatePostRequest;
+import org.pikovets.GeeksSocialNetworkAPI.exceptions.BadRequestException;
+import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotAllowedException;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotFoundException;
 import org.pikovets.GeeksSocialNetworkAPI.model.*;
 import org.pikovets.GeeksSocialNetworkAPI.model.enums.Role;
@@ -84,7 +86,7 @@ public class PostService {
     public void deletePost(UUID postId, UUID userId) {
         User user = userService.getUserById(userId);
 
-        Post post = postRepository.findById(postId).get();
+        Post post = postRepository.findById(postId).orElseThrow(new NotFoundException("Post not found"));
 
         Community postCommunity = post.getCommunity();
         if (postCommunity != null) {
@@ -101,6 +103,8 @@ public class PostService {
             postRepository.delete(post);
             return;
         }
+
+        throw new NotAllowedException("You do not have permission to delete this post");
     }
 
 
