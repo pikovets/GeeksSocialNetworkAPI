@@ -40,6 +40,10 @@ public class PostService {
         this.userCommunityRepository = userCommunityRepository;
     }
 
+    public Post getPost(UUID postId) {
+        return postRepository.findById(postId).orElseThrow(new NotFoundException("Post not found"));
+    }
+
     @Transactional
     public void createPost(CreatePostRequest createRequest, UUID authorId) {
         Post post = new Post();

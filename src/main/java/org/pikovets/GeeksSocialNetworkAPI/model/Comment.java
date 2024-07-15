@@ -4,14 +4,18 @@ import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
 @Data
+@NoArgsConstructor
 @Table(name = "comment")
 public class Comment {
     @Id
@@ -30,15 +34,38 @@ public class Comment {
     @JoinColumn(name = "post_id", referencedColumnName = "id")
     private Post post;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User author;
 
-    @ManyToOne
     @Nullable
+    @ManyToOne
     @JoinColumn(name = "parent_comment_id", referencedColumnName = "id")
     private Comment parentComment;
 
-    @OneToMany(mappedBy = "comment")
-    private List<CommentLike> likes;
+    @OneToMany(mappedBy = "comment", cascade = CascadeType.REMOVE)
+    private Set<CommentLike> likes;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Comment comment)) return false;
+
+        if (!id.equals(comment.id)) return false;
+        if (!date.equals(comment.date)) return false;
+        if (!text.equals(comment.text)) return false;
+        if (!post.equals(comment.post)) return false;
+        if (!author.equals(comment.author)) return false;
+        return Objects.equals(parentComment, comment.parentComment);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = date.hashCode();
+        result = 31 * result + text.hashCode();
+        result = 31 * result + post.hashCode();
+        result = 31 * result + author.hashCode();
+        result = 31 * result + (parentComment != null ? parentComment.hashCode() : 0);
+        return result;
+    }
 }
