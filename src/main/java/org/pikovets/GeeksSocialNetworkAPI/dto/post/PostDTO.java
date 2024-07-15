@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.pikovets.GeeksSocialNetworkAPI.dto.CommentDTO;
 import org.pikovets.GeeksSocialNetworkAPI.dto.PostLikeDTO;
+import org.pikovets.GeeksSocialNetworkAPI.dto.community.CommunityDTO;
 import org.pikovets.GeeksSocialNetworkAPI.dto.user.UserDTO;
 import org.pikovets.GeeksSocialNetworkAPI.model.PostLike;
 
@@ -29,6 +30,8 @@ public class PostDTO {
     private LocalDateTime date;
 
     private UserDTO author;
+
+    private CommunityDTO community;
 
     private Set<PostLikeDTO> likes;
 

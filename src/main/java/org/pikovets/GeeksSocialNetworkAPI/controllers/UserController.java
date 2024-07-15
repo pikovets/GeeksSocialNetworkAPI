@@ -7,9 +7,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.modelmapper.ModelMapper;
 import org.pikovets.GeeksSocialNetworkAPI.dto.community.ChangeRoleRequest;
+import org.pikovets.GeeksSocialNetworkAPI.dto.community.CommunityDTO;
+import org.pikovets.GeeksSocialNetworkAPI.dto.community.CommunityResponse;
 import org.pikovets.GeeksSocialNetworkAPI.dto.user.UserDTO;
 import org.pikovets.GeeksSocialNetworkAPI.dto.user.UserResponse;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.ErrorObject;
+import org.pikovets.GeeksSocialNetworkAPI.model.Community;
 import org.pikovets.GeeksSocialNetworkAPI.model.User;
 import org.pikovets.GeeksSocialNetworkAPI.security.IAuthenticationFacade;
 import org.pikovets.GeeksSocialNetworkAPI.service.UserService;
@@ -79,6 +82,16 @@ public class UserController {
         return new ResponseEntity<>(new UserResponse(userService.getAcceptFriendRequests(authenticationFacade.getUserID()).stream().map(this::convertToUserDTO).toList()), HttpStatus.OK);
     }
 
+    @GetMapping("/me/getCommunities")
+    public ResponseEntity<CommunityResponse> getCommunities() {
+        return new ResponseEntity<>(new CommunityResponse(userService.getCommunities(authenticationFacade.getUserID()).stream().map(this::convertToCommunityDTO).toList()), HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}/getCommunities")
+    public ResponseEntity<CommunityResponse> getCommunities(@PathVariable("id") UUID userId) {
+        return new ResponseEntity<>(new CommunityResponse(userService.getCommunities(userId).stream().map(this::convertToCommunityDTO).toList()), HttpStatus.OK);
+    }
+
     @PatchMapping("/{id}/changeRole")
     public ResponseEntity<HttpStatus> changeCommunityRole(@PathVariable("id") UUID userId, @RequestBody ChangeRoleRequest changeRoleRequest) {
         userService.changeCommunityRole(userId, changeRoleRequest, authenticationFacade.getUserID());
@@ -87,5 +100,9 @@ public class UserController {
 
     public UserDTO convertToUserDTO(User user) {
         return modelMapper.map(user, UserDTO.class);
+    }
+
+    public CommunityDTO convertToCommunityDTO(Community community) {
+        return modelMapper.map(community, CommunityDTO.class);
     }
 }

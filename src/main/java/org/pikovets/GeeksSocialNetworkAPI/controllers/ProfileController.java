@@ -133,21 +133,27 @@ public class ProfileController {
     )
     @PostMapping("/me/wall")
     public ResponseEntity<HttpStatus> createPost(@RequestBody CreatePostRequest createRequest) {
-        postService.createPost(authenticationFacade.getUserID(), createRequest);
+        postService.createPost(createRequest, authenticationFacade.getUserID());
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PostMapping("/{id}/wall")
+    public ResponseEntity<HttpStatus> createCommunityPost(@PathVariable("id") String communityId, @RequestBody CreatePostRequest createRequest) {
+        postService.createPost(createRequest, authenticationFacade.getUserID(), UUID.fromString(communityId));
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @GetMapping("/{id}/wall")
-    public ResponseEntity<PostResponse> getPosts(@PathVariable("id") String userId) {
-        UUID userUUID = null;
-        if (userId.equals("me")) {
-            userUUID = authenticationFacade.getUserID();
+    public ResponseEntity<PostResponse> getPosts(@PathVariable("id") String entityId) {
+        UUID entityUUID = null;
+        if (entityId.equals("me")) {
+            entityUUID = authenticationFacade.getUserID();
         } else {
-            userUUID = UUID.fromString(userId);
+            entityUUID = UUID.fromString(entityId);
         }
 
         return new ResponseEntity<>(
-                new PostResponse(postService.getPosts(userUUID).stream().map(this::convertToPostDTO).toList()), HttpStatus.OK);
+                new PostResponse(postService.getPosts(entityUUID).stream().map(this::convertToPostDTO).toList()), HttpStatus.OK);
     }
 
     public PostDTO convertToPostDTO(Post post) {

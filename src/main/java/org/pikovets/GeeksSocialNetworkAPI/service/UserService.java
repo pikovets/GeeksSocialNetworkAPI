@@ -1,8 +1,10 @@
 package org.pikovets.GeeksSocialNetworkAPI.service;
 
 import org.pikovets.GeeksSocialNetworkAPI.dto.community.ChangeRoleRequest;
+import org.pikovets.GeeksSocialNetworkAPI.dto.community.CommunityDTO;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.BadRequestException;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotFoundException;
+import org.pikovets.GeeksSocialNetworkAPI.model.Community;
 import org.pikovets.GeeksSocialNetworkAPI.model.UserCommunity;
 import org.pikovets.GeeksSocialNetworkAPI.model.enums.RelationshipType;
 import org.pikovets.GeeksSocialNetworkAPI.model.User;
@@ -18,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -71,6 +74,10 @@ public class UserService {
 
     public List<User> getAcceptFriendRequests(UUID userId) {
         return getUserById(userId).getFriendshipsAccepted().stream().filter(request -> request.getType().equals(RelationshipType.ACCEPTOR_PENDING)).map(UserRelationship::getRequester).toList();
+    }
+
+    public List<Community> getCommunities(UUID userId) {
+        return getUserById(userId).getUserCommunities().stream().map(UserCommunity::getCommunity).toList();
     }
 
     @Transactional
