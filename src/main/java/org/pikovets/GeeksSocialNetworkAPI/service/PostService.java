@@ -73,6 +73,7 @@ public class PostService {
         if (user == null) {
             Community community = communityService.getById(entityId);
 
+
             return postRepository.findByCommunityOrderByDateDesc(community);
         }
 
