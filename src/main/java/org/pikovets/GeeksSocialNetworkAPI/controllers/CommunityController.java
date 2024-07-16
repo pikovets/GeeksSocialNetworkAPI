@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.modelmapper.ModelMapper;
 import org.pikovets.GeeksSocialNetworkAPI.dto.community.CommunityDTO;
 import org.pikovets.GeeksSocialNetworkAPI.dto.community.CommunityProfileDTO;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/communities")
+@Tag(name="Community")
 public class CommunityController {
     private final AuthenticationFacade authenticationFacade;
     private final CommunityService communityService;
