@@ -38,15 +38,8 @@ public class CommunityService {
         return communityRepository.findAll();
     }
 
-    public Community getById(UUID communityId, UUID authUserId) {
-        Optional<UserCommunity> userCommunity = userCommunityRepository.findByCommunityIdAndUserId(communityId, authUserId);
-
-        if (userCommunity.isEmpty()) {
-            Community community = communityRepository.findById(communityId).orElseThrow(new NotFoundException("Community not found"));
-            community.setPosts(null);
-            return community;
-        }
-        return userCommunity.get().getCommunity();
+    public Community getById(UUID communityId) {
+        return communityRepository.findById(communityId).orElseThrow(new NotFoundException("Community not found"));
     }
 
     @Transactional
@@ -55,10 +48,10 @@ public class CommunityService {
 
         community.setName(communityRequest.getName());
         community.setDescription(communityRequest.getDescription());
-        community.setCategory(communityRequest.getCategory());
+//        community.setCategory(communityRequest.getCategory());
         community.setPhotoLink(communityRequest.getPhotoLink());
-        community.setPublishPermission(communityRequest.getPublishPermission());
-        community.setJoinType(communityRequest.getJoinType());
+//        community.setPublishPermission(communityRequest.getPublishPermission());
+//        community.setJoinType(communityRequest.getJoinType());
 
         communityRepository.save(community);
 
@@ -90,5 +83,11 @@ public class CommunityService {
 
     public List<Community> searchCommunityByName(String name) {
         return communityRepository.findByNameIgnoreCase(name);
+    }
+
+    public Role getCurrentUserRole(UUID communityId, UUID authUserId) {
+        return userCommunityRepository.findByCommunityIdAndUserId(communityId, authUserId)
+                .map(UserCommunity::getUserRole)
+                .orElse(null);
     }
 }

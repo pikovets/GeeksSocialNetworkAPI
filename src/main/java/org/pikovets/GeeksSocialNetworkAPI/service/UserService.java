@@ -1,8 +1,11 @@
 package org.pikovets.GeeksSocialNetworkAPI.service;
 
 import org.pikovets.GeeksSocialNetworkAPI.dto.community.ChangeRoleRequest;
+import org.pikovets.GeeksSocialNetworkAPI.dto.community.CommunityDTO;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.BadRequestException;
+import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotAllowedException;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotFoundException;
+import org.pikovets.GeeksSocialNetworkAPI.model.Community;
 import org.pikovets.GeeksSocialNetworkAPI.model.UserCommunity;
 import org.pikovets.GeeksSocialNetworkAPI.model.enums.RelationshipType;
 import org.pikovets.GeeksSocialNetworkAPI.model.User;
@@ -18,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -73,12 +77,16 @@ public class UserService {
         return getUserById(userId).getFriendshipsAccepted().stream().filter(request -> request.getType().equals(RelationshipType.ACCEPTOR_PENDING)).map(UserRelationship::getRequester).toList();
     }
 
+    public List<Community> getCommunities(UUID userId) {
+        return getUserById(userId).getUserCommunities().stream().map(UserCommunity::getCommunity).toList();
+    }
+
     @Transactional
     public void changeCommunityRole(UUID userId, ChangeRoleRequest changeRoleRequest, UUID authUserId) {
         Optional<UserCommunity> authUserCommunity = userCommunityRepository.findByCommunityIdAndUserId(changeRoleRequest.getCommunityId(), authUserId);
 
         if (authUserCommunity.isEmpty() || !authUserCommunity.get().getUserRole().equals(Role.ADMIN)) {
-            throw new BadRequestException("Authenticated user isn't an administrator of specified group");
+            throw new NotAllowedException("Authenticated user isn't an administrator of specified group");
         }
 
         UserCommunity userCommunity = userCommunityRepository.findByCommunityIdAndUserId(changeRoleRequest.getCommunityId(), userId)

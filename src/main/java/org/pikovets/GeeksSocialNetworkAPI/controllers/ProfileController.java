@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.pikovets.GeeksSocialNetworkAPI.core.ErrorUtils;
@@ -31,6 +32,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "http://localhost:8080")
 @RequestMapping("/profiles")
+@Tag(name = "Profile")
 public class ProfileController {
     private final ProfileService profileService;
     private final UserValidator userValidator;
@@ -49,7 +51,7 @@ public class ProfileController {
 
     @Operation(
             summary = "Get current user profile",
-            description = "Return current authorized user's profile",
+            description = "Get current authorized user's profile",
             responses = {
                     @ApiResponse(
                             description = "Success",
@@ -62,7 +64,8 @@ public class ProfileController {
                     ),
                     @ApiResponse(
                             description = "Unauthorized / Invalid Token",
-                            responseCode = "403"
+                            responseCode = "403",
+                            content = @Content
                     )
             }
     )
@@ -73,7 +76,14 @@ public class ProfileController {
 
     @Operation(
             summary = "Get specific user profile",
-            description = "Return specific user's profile by user id",
+            description = "Get specific user's profile by user id",
+            parameters = {
+                    @Parameter(
+                            name = "id",
+                            description = "User id",
+                            required = true
+                    ),
+            },
             responses = {
                     @ApiResponse(
                             description = "Success",
@@ -86,7 +96,8 @@ public class ProfileController {
                     ),
                     @ApiResponse(
                             description = "Unauthorized / Invalid Token",
-                            responseCode = "403"
+                            responseCode = "403",
+                            content = @Content
                     )
             }
     )
@@ -95,6 +106,26 @@ public class ProfileController {
         return new ResponseEntity<>(convertToProfileDTO(profileService.getProfileByUserId(userId)), HttpStatus.OK);
     }
 
+    @Operation(
+            summary = "Update current user profile",
+            description = "This endpoint allows an authenticated user to update their profile information",
+            responses = {
+                    @ApiResponse(
+                            description = "Success",
+                            responseCode = "200"
+                    ),
+                    @ApiResponse(
+                            description = "Bad Request",
+                            responseCode = "400",
+                            content = @Content(schema = @Schema(implementation = ErrorObject.class))
+                    ),
+                    @ApiResponse(
+                            description = "Unauthorized / Invalid Token",
+                            responseCode = "403",
+                            content = @Content
+                    )
+            }
+    )
     @PatchMapping("/me")
     public ResponseEntity<HttpStatus> updateCurrentUserData(@RequestBody @Valid UserProfileDTO userProfileDTO, BindingResult bindingResult) {
         userValidator.validate(userProfileDTO, bindingResult);
@@ -108,13 +139,7 @@ public class ProfileController {
 
     @Operation(
             summary = "Create post",
-            description = "Creates a post on the my wall",
-            parameters = {
-                    @Parameter(
-                            name = "id",
-                            description = "Post author id"
-                    )
-            },
+            description = "Creates a post on the current user's wall",
             responses = {
                     @ApiResponse(
                             description = "Success",
@@ -127,42 +152,105 @@ public class ProfileController {
                     ),
                     @ApiResponse(
                             description = "Unauthorized / Invalid Token",
-                            responseCode = "403"
+                            responseCode = "403",
+                            content = @Content
                     )
             }
     )
     @PostMapping("/me/wall")
     public ResponseEntity<HttpStatus> createPost(@RequestBody CreatePostRequest createRequest) {
-        postService.createPost(authenticationFacade.getUserID(), createRequest);
+        postService.createPost(createRequest, authenticationFacade.getUserID());
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @Operation(
+            summary = "Create community post",
+            description = "Creates a post on the community wall",
+            parameters = {
+                    @Parameter(
+                            name = "id",
+                            description = "Community id",
+                            required = true
+                    ),
+            },
+            responses = {
+                    @ApiResponse(
+                            description = "Success",
+                            responseCode = "200"
+                    ),
+                    @ApiResponse(
+                            description = "Bad Request",
+                            responseCode = "400",
+                            content = @Content(schema = @Schema(implementation = ErrorObject.class))
+                    ),
+                    @ApiResponse(
+                            description = "Not Found",
+                            responseCode = "404",
+                            content = @Content(schema = @Schema(implementation = ErrorObject.class))
+                    ),
+                    @ApiResponse(
+                            description = "Unauthorized / Invalid Token",
+                            responseCode = "403",
+                            content = @Content
+                    )
+            }
+    )
+    @PostMapping("/{id}/wall")
+    public ResponseEntity<HttpStatus> createCommunityPost(@PathVariable("id") String communityId, @RequestBody CreatePostRequest createRequest) {
+        postService.createPost(createRequest, authenticationFacade.getUserID(), UUID.fromString(communityId));
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @Operation(
+            summary = "Get all the posts on the wall",
+            description = "Get all posts on the wall by user or community id",
+            parameters = {
+                    @Parameter(
+                            name = "id",
+                            description = "User id",
+                            required = true
+                    ),
+            },
+            responses = {
+                    @ApiResponse(
+                            description = "Success",
+                            responseCode = "200"
+                    ),
+                    @ApiResponse(
+                            description = "Bad Request",
+                            responseCode = "400",
+                            content = @Content(schema = @Schema(implementation = ErrorObject.class))
+                    ),
+                    @ApiResponse(
+                            description = "Not Found",
+                            responseCode = "404",
+                            content = @Content(schema = @Schema(implementation = ErrorObject.class))
+                    ),
+                    @ApiResponse(
+                            description = "Unauthorized / Invalid Token",
+                            responseCode = "403",
+                            content = @Content
+                    )
+            }
+    )
     @GetMapping("/{id}/wall")
-    public ResponseEntity<PostResponse> getPosts(@PathVariable("id") String userId) {
-        UUID userUUID = null;
-        if (userId.equals("me")) {
-            userUUID = authenticationFacade.getUserID();
+    public ResponseEntity<PostResponse> getPosts(@PathVariable("id") String entityId) {
+        UUID entityUUID = null;
+        if (entityId.equals("me")) {
+            entityUUID = authenticationFacade.getUserID();
         } else {
-            userUUID = UUID.fromString(userId);
+            entityUUID = UUID.fromString(entityId);
         }
 
         return new ResponseEntity<>(
-                new PostResponse(postService.getPosts(userUUID).stream().map(this::convertToPostDTO).toList()), HttpStatus.OK);
+                new PostResponse(postService.getPosts(entityUUID).stream().map(this::convertToPostDTO).toList()), HttpStatus.OK);
     }
 
     public PostDTO convertToPostDTO(Post post) {
         return modelMapper.map(post, PostDTO.class);
     }
 
-    public Post convertToPost(PostDTO postDTO) {
-        return modelMapper.map(postDTO, Post.class);
-    }
-
     public ProfileDTO convertToProfileDTO(Profile profile) {
         return modelMapper.map(profile, ProfileDTO.class);
-    }
-
-    public Profile convertToProfile(ProfileDTO profileDTO) {
-        return modelMapper.map(profileDTO, Profile.class);
     }
 }

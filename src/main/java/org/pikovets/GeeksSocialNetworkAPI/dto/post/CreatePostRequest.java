@@ -1,6 +1,5 @@
 package org.pikovets.GeeksSocialNetworkAPI.dto.post;
 
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;

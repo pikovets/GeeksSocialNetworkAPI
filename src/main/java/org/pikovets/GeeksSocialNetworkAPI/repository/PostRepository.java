@@ -1,5 +1,6 @@
 package org.pikovets.GeeksSocialNetworkAPI.repository;
 
+import org.pikovets.GeeksSocialNetworkAPI.model.Community;
 import org.pikovets.GeeksSocialNetworkAPI.model.Post;
 import org.pikovets.GeeksSocialNetworkAPI.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,4 +12,6 @@ import java.util.UUID;
 @Repository
 public interface PostRepository extends JpaRepository<Post, UUID> {
     List<Post> findByAuthorOrderByDateDesc(User author);
+
+    List<Post> findByCommunityOrderByDateDesc(Community community);
 }

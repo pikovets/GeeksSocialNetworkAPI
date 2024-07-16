@@ -28,7 +28,7 @@ public class Profile {
     private String bio;
 
     @Column(name = "birthday")
-    @JsonFormat(pattern="MM/dd/yyyy")
+    @JsonFormat(pattern="dd.MM.yyyy")
     private Date birthday;
 
     @Column(name = "sex")
