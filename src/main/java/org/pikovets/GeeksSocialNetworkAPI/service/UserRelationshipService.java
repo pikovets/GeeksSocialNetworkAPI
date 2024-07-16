@@ -1,6 +1,7 @@
 package org.pikovets.GeeksSocialNetworkAPI.service;
 
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.BadRequestException;
+import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotAllowedException;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotFoundException;
 import org.pikovets.GeeksSocialNetworkAPI.model.enums.RelationshipType;
 import org.pikovets.GeeksSocialNetworkAPI.model.UserRelationship;
@@ -38,7 +39,7 @@ public class UserRelationshipService {
         UserRelationship userRelationship = getFriendRequest(userId, authUserId);
 
         if (authUserId.equals(userRelationship.getRequester().getId())) {
-            throw new BadRequestException("Requester cannot accept the request");
+            throw new NotAllowedException("Requester cannot accept the request");
         }
 
         userRelationship.setType(RelationshipType.FRIENDS);
