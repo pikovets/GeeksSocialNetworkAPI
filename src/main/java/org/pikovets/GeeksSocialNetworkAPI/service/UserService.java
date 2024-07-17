@@ -3,6 +3,7 @@ package org.pikovets.GeeksSocialNetworkAPI.service;
 import org.pikovets.GeeksSocialNetworkAPI.dto.community.ChangeRoleRequest;
 import org.pikovets.GeeksSocialNetworkAPI.dto.community.CommunityDTO;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.BadRequestException;
+import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotAllowedException;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotFoundException;
 import org.pikovets.GeeksSocialNetworkAPI.model.Community;
 import org.pikovets.GeeksSocialNetworkAPI.model.UserCommunity;
@@ -85,7 +86,7 @@ public class UserService {
         Optional<UserCommunity> authUserCommunity = userCommunityRepository.findByCommunityIdAndUserId(changeRoleRequest.getCommunityId(), authUserId);
 
         if (authUserCommunity.isEmpty() || !authUserCommunity.get().getUserRole().equals(Role.ADMIN)) {
-            throw new BadRequestException("Authenticated user isn't an administrator of specified group");
+            throw new NotAllowedException("Authenticated user isn't an administrator of specified group");
         }
 
         UserCommunity userCommunity = userCommunityRepository.findByCommunityIdAndUserId(changeRoleRequest.getCommunityId(), userId)
