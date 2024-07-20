@@ -73,9 +73,6 @@ class AuthServiceTest {
 
     @Test
     void registerUser_ShouldSaveUserAndProfile() {
-        when(passwordEncoder.encode(anyString())).thenReturn("VDBQa28xUEF0STJTdUpx");
-        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
         authService.registerUser(signUpDTO);
 
         verify(userRepository, times(1)).save(any(User.class));
@@ -96,7 +93,6 @@ class AuthServiceTest {
 
     @Test
     public void testLoginUser_IncorrectPassword() {
-        when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(user));
         doThrow(new BadRequestException("Incorrect username or password"))
                 .when(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
 
