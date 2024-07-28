@@ -72,7 +72,7 @@ class AuthServiceTest {
     }
 
     @Test
-    void registerUser_ShouldSaveUserAndProfile() {
+    void testRegisterUser_ShouldSaveUserAndProfile() {
         authService.registerUser(signUpDTO);
 
         verify(userRepository, times(1)).save(any(User.class));
