@@ -36,6 +36,21 @@ public class UserRelationship {
     public static class UserRelationshipId implements Serializable {
         private UUID requester;
         private UUID acceptor;
+
+        @Override
+        public final boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof UserRelationshipId that)) return false;
+
+            return requester.equals(that.requester) && acceptor.equals(that.acceptor);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = requester.hashCode();
+            result = 31 * result + acceptor.hashCode();
+            return result;
+        }
     }
 
     @Override

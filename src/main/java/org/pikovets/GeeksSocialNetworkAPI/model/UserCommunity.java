@@ -37,6 +37,21 @@ public class UserCommunity {
     public static class UserCommunityId implements Serializable {
         private UUID user;
         private UUID community;
+
+        @Override
+        public final boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof UserCommunityId that)) return false;
+
+            return user.equals(that.user) && community.equals(that.community);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = user.hashCode();
+            result = 31 * result + community.hashCode();
+            return result;
+        }
     }
 
     @Override
