@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -23,7 +24,7 @@ public class Post {
 
     @NotNull
     @Column(name = "date")
-    private LocalDateTime date;
+    private LocalDateTime date = LocalDateTime.now();
 
     @Size(min = 1, max = 2200, message = "The post text should contain between 0 and 2200 characters")
     @Column(name = "text")
@@ -38,14 +39,14 @@ public class Post {
     private User author;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE)
-    private Set<PostLike> likes;
+    private Set<PostLike> likes = new HashSet<>();
 
     @ManyToOne
     @JoinColumn(name = "community_id", referencedColumnName = "id")
     private Community community;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE)
-    private Set<Comment> comments;
+    private Set<Comment> comments = new HashSet<>();
 
     @Override
     public String toString() {

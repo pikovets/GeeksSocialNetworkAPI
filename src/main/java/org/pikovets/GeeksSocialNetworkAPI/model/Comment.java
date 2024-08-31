@@ -8,10 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Data
@@ -24,7 +21,7 @@ public class Comment {
 
     @NotNull
     @Column(name = "date")
-    private LocalDateTime date;
+    private LocalDateTime date = LocalDateTime.now();
 
     @NotNull
     @Column(name = "text")
@@ -44,7 +41,7 @@ public class Comment {
     private Comment parentComment;
 
     @OneToMany(mappedBy = "comment", cascade = CascadeType.REMOVE)
-    private Set<CommentLike> likes;
+    private Set<CommentLike> likes = new HashSet<>();
 
     @Override
     public boolean equals(Object o) {

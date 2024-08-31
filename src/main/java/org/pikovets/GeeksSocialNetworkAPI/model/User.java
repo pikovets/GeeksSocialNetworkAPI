@@ -10,10 +10,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Data
@@ -60,13 +57,13 @@ public class User implements UserDetails {
     private Set<Post> posts;
 
     @OneToMany(mappedBy = "requester")
-    private Set<UserRelationship> friendshipsRequested;
+    private Set<UserRelationship> friendshipsRequested = new HashSet<>();
 
     @OneToMany(mappedBy = "acceptor")
-    private Set<UserRelationship> friendshipsAccepted;
+    private Set<UserRelationship> friendshipsAccepted = new HashSet<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
-    private Set<UserCommunity> userCommunities;
+    private Set<UserCommunity> userCommunities = new HashSet<>();
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
