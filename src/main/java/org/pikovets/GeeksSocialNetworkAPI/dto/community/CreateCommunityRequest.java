@@ -12,13 +12,7 @@ import org.pikovets.GeeksSocialNetworkAPI.model.enums.PublishPermission;
 public class CreateCommunityRequest {
     private String name;
 
-    private String description;
-
     private CommunityCategory category;
-
-    private String photoLink;
-
-    private PublishPermission publishPermission;
 
     private JoinType joinType;
 }

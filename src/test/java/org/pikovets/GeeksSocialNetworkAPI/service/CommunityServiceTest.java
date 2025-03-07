@@ -165,8 +165,10 @@ public class CommunityServiceTest {
         when(userCommunityRepository.findByCommunityIdAndUserId(communityId, userId))
                 .thenReturn(Optional.empty());
 
-        Role role = communityService.getCurrentUserRole(communityId, userId);
+        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
+            communityService.getCurrentUserRole(communityId, userId);
+        });
 
-        assertNull(role);
+        assertEquals("User not found in community", exception.getMessage());
     }
 }

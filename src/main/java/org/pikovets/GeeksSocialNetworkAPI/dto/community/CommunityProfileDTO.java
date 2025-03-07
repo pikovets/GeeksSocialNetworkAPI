@@ -4,11 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.pikovets.GeeksSocialNetworkAPI.dto.post.PostDTO;
+import org.pikovets.GeeksSocialNetworkAPI.dto.user.UserDTO;
 import org.pikovets.GeeksSocialNetworkAPI.model.Post;
 import org.pikovets.GeeksSocialNetworkAPI.model.enums.CommunityCategory;
 import org.pikovets.GeeksSocialNetworkAPI.model.enums.JoinType;
 import org.pikovets.GeeksSocialNetworkAPI.model.enums.PublishPermission;
 
+import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
 
@@ -30,5 +32,9 @@ public class CommunityProfileDTO {
 
     private JoinType joinType;
 
+    private Date createdDate;
+
     private Set<PostDTO> posts;
+
+    private Set<UserDTO> followers;
 }

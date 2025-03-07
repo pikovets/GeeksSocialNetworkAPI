@@ -26,7 +26,7 @@ public class Post {
     @Column(name = "date")
     private LocalDateTime date = LocalDateTime.now();
 
-    @Size(min = 1, max = 2200, message = "The post text should contain between 0 and 2200 characters")
+        @Size(min = 1, max = 2200, message = "The post text should contain between 1 and 2200 characters")
     @Column(name = "text")
     private String text;
 
