@@ -1,6 +1,5 @@
 package org.pikovets.GeeksSocialNetworkAPI.service;
 
-import org.pikovets.GeeksSocialNetworkAPI.dto.community.CommunityResponse;
 import org.pikovets.GeeksSocialNetworkAPI.dto.community.CreateCommunityRequest;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotAllowedException;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotFoundException;
@@ -10,15 +9,15 @@ import org.pikovets.GeeksSocialNetworkAPI.model.UserCommunity;
 import org.pikovets.GeeksSocialNetworkAPI.model.enums.Role;
 import org.pikovets.GeeksSocialNetworkAPI.repository.CommunityRepository;
 import org.pikovets.GeeksSocialNetworkAPI.repository.UserCommunityRepository;
-import org.pikovets.GeeksSocialNetworkAPI.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -47,11 +46,9 @@ public class CommunityService {
         Community community = new Community();
 
         community.setName(communityRequest.getName());
-        community.setDescription(communityRequest.getDescription());
-//        community.setCategory(communityRequest.getCategory());
-        community.setPhotoLink(communityRequest.getPhotoLink());
+        community.setCategory(communityRequest.getCategory());
 //        community.setPublishPermission(communityRequest.getPublishPermission());
-//        community.setJoinType(communityRequest.getJoinType());
+        community.setJoinType(communityRequest.getJoinType());
 
         communityRepository.save(community);
 
@@ -86,8 +83,10 @@ public class CommunityService {
     }
 
     public Role getCurrentUserRole(UUID communityId, UUID authUserId) {
-        return userCommunityRepository.findByCommunityIdAndUserId(communityId, authUserId)
-                .map(UserCommunity::getUserRole)
-                .orElse(null);
+        return userCommunityRepository.findByCommunityIdAndUserId(communityId, authUserId).map(UserCommunity::getUserRole).orElseThrow(new NotFoundException("User not found in community"));
+    }
+
+    public Set<User> getFollowers(UUID communityId) {
+        return userCommunityRepository.findByCommunityId(communityId).stream().map(UserCommunity::getUser).collect(Collectors.toSet());
     }
 }

@@ -1,8 +1,6 @@
 package org.pikovets.GeeksSocialNetworkAPI.service;
 
-import org.hibernate.annotations.NotFound;
 import org.pikovets.GeeksSocialNetworkAPI.dto.post.CreatePostRequest;
-import org.pikovets.GeeksSocialNetworkAPI.exceptions.BadRequestException;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotAllowedException;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotFoundException;
 import org.pikovets.GeeksSocialNetworkAPI.model.*;
@@ -21,6 +19,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @Transactional(readOnly = true)
@@ -131,8 +130,8 @@ public class PostService {
     }
 
     public List<Post> getFeed(UUID authUserId) {
-        return userService.getFriends(authUserId).stream()
-                .flatMap(user -> user.getPosts().stream())
+        return Stream.concat(userService.getFriends(authUserId).stream()
+                        .flatMap(user -> user.getPosts().stream()), getPosts(authUserId).stream())
                 .sorted(Comparator.comparing(Post::getDate).reversed())
                 .collect(Collectors.toList());
     }
