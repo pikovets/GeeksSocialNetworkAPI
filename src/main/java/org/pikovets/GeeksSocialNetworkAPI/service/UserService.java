@@ -7,6 +7,7 @@ import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotAllowedException;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotFoundException;
 import org.pikovets.GeeksSocialNetworkAPI.model.Community;
 import org.pikovets.GeeksSocialNetworkAPI.model.UserCommunity;
+import org.pikovets.GeeksSocialNetworkAPI.model.enums.CommunityRole;
 import org.pikovets.GeeksSocialNetworkAPI.model.enums.RelationshipType;
 import org.pikovets.GeeksSocialNetworkAPI.model.User;
 import org.pikovets.GeeksSocialNetworkAPI.model.UserRelationship;
@@ -85,7 +86,7 @@ public class UserService {
     public void changeCommunityRole(UUID userId, ChangeRoleRequest changeRoleRequest, UUID authUserId) {
         Optional<UserCommunity> authUserCommunity = userCommunityRepository.findByCommunityIdAndUserId(changeRoleRequest.getCommunityId(), authUserId);
 
-        if (authUserCommunity.isEmpty() || !authUserCommunity.get().getUserRole().equals(Role.ADMIN)) {
+        if (authUserCommunity.isEmpty() || !authUserCommunity.get().getUserRole().equals(CommunityRole.ADMIN)) {
             throw new NotAllowedException("Authenticated user isn't an administrator of specified group");
         }
 

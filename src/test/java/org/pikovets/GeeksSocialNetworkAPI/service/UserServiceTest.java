@@ -13,6 +13,7 @@ import org.pikovets.GeeksSocialNetworkAPI.model.Community;
 import org.pikovets.GeeksSocialNetworkAPI.model.User;
 import org.pikovets.GeeksSocialNetworkAPI.model.UserCommunity;
 import org.pikovets.GeeksSocialNetworkAPI.model.UserRelationship;
+import org.pikovets.GeeksSocialNetworkAPI.model.enums.CommunityRole;
 import org.pikovets.GeeksSocialNetworkAPI.model.enums.RelationshipType;
 import org.pikovets.GeeksSocialNetworkAPI.model.enums.Role;
 import org.pikovets.GeeksSocialNetworkAPI.repository.UserCommunityRepository;
@@ -180,17 +181,17 @@ public class UserServiceTest {
         User adminUser = new User();
 
         UserCommunity adminUserCommunity = new UserCommunity();
-        adminUserCommunity.setUserRole(Role.ADMIN);
+        adminUserCommunity.setUserRole(CommunityRole.ADMIN);
         adminUserCommunity.setCommunity(new Community());
         adminUserCommunity.getCommunity().setId(communityId);
 
         UserCommunity userCommunity = new UserCommunity();
-        userCommunity.setUserRole(Role.USER);
+        userCommunity.setUserRole(CommunityRole.MEMBER);
         userCommunity.setCommunity(adminUserCommunity.getCommunity());
 
         changeRoleRequest = new ChangeRoleRequest();
         changeRoleRequest.setCommunityId(communityId);
-        changeRoleRequest.setNewRole(Role.MODERATOR);
+        changeRoleRequest.setNewRole(CommunityRole.MODERATOR);
 
         adminUser.setId(UUID.randomUUID());
         when(userCommunityRepository.findByCommunityIdAndUserId(communityId, adminUser.getId())).thenReturn(Optional.of(adminUserCommunity));
@@ -200,7 +201,7 @@ public class UserServiceTest {
 
         verify(userCommunityRepository, times(1)).findByCommunityIdAndUserId(communityId, adminUser.getId());
         verify(userCommunityRepository, times(1)).findByCommunityIdAndUserId(communityId, userId);
-        assertEquals(Role.MODERATOR, userCommunity.getUserRole());
+        assertEquals(CommunityRole.MODERATOR, userCommunity.getUserRole());
     }
 
     @Test
@@ -209,7 +210,7 @@ public class UserServiceTest {
         nonAdminUser.setId(UUID.randomUUID());
 
         UserCommunity nonAdminUserCommunity = new UserCommunity();
-        nonAdminUserCommunity.setUserRole(Role.USER);
+        nonAdminUserCommunity.setUserRole(CommunityRole.MEMBER);
         nonAdminUserCommunity.setCommunity(new Community());
         nonAdminUserCommunity.getCommunity().setId(communityId);
 
@@ -217,7 +218,7 @@ public class UserServiceTest {
 
         changeRoleRequest = new ChangeRoleRequest();
         changeRoleRequest.setCommunityId(communityId);
-        changeRoleRequest.setNewRole(Role.MODERATOR);
+        changeRoleRequest.setNewRole(CommunityRole.MODERATOR);
 
         NotAllowedException thrown = assertThrows(NotAllowedException.class, () -> {
             userService.changeCommunityRole(userId, changeRoleRequest, nonAdminUser.getId());

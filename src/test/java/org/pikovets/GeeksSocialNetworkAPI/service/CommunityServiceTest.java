@@ -11,6 +11,7 @@ import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotFoundException;
 import org.pikovets.GeeksSocialNetworkAPI.model.Community;
 import org.pikovets.GeeksSocialNetworkAPI.model.User;
 import org.pikovets.GeeksSocialNetworkAPI.model.UserCommunity;
+import org.pikovets.GeeksSocialNetworkAPI.model.enums.CommunityRole;
 import org.pikovets.GeeksSocialNetworkAPI.model.enums.Role;
 import org.pikovets.GeeksSocialNetworkAPI.repository.CommunityRepository;
 import org.pikovets.GeeksSocialNetworkAPI.repository.UserCommunityRepository;
@@ -62,7 +63,7 @@ public class CommunityServiceTest {
         userCommunity = new UserCommunity();
         userCommunity.setUser(user);
         userCommunity.setCommunity(community);
-        userCommunity.setUserRole(Role.USER);
+        userCommunity.setUserRole(CommunityRole.MEMBER);
 
         communityRequest = new CreateCommunityRequest();
         communityRequest.setName("Test");
@@ -155,9 +156,9 @@ public class CommunityServiceTest {
         when(userCommunityRepository.findByCommunityIdAndUserId(communityId, userId))
                 .thenReturn(Optional.of(userCommunity));
 
-        Role role = communityService.getCurrentUserRole(communityId, userId);
+        CommunityRole role = communityService.getCurrentUserRole(communityId, userId);
 
-        assertEquals(Role.USER, role);
+        assertEquals(CommunityRole.MEMBER, role);
     }
 
     @Test

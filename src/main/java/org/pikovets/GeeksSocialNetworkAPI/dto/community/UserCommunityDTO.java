@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.pikovets.GeeksSocialNetworkAPI.dto.user.UserDTO;
+import org.pikovets.GeeksSocialNetworkAPI.model.enums.CommunityRole;
 import org.pikovets.GeeksSocialNetworkAPI.model.enums.Role;
 
 @Data
@@ -18,7 +19,7 @@ public class UserCommunityDTO {
     private CommunityDTO community;
 
     @NotNull
-    private Role userRole;
+    private CommunityRole userRole;
 
     @Override
     public int hashCode() {
