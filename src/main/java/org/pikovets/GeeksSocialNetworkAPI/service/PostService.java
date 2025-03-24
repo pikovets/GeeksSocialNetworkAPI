@@ -4,6 +4,7 @@ import org.pikovets.GeeksSocialNetworkAPI.dto.post.CreatePostRequest;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotAllowedException;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotFoundException;
 import org.pikovets.GeeksSocialNetworkAPI.model.*;
+import org.pikovets.GeeksSocialNetworkAPI.model.enums.CommunityRole;
 import org.pikovets.GeeksSocialNetworkAPI.model.enums.Role;
 import org.pikovets.GeeksSocialNetworkAPI.repository.CommentRepository;
 import org.pikovets.GeeksSocialNetworkAPI.repository.PostLikeRepository;
@@ -91,8 +92,8 @@ public class PostService {
             Optional<UserCommunity> optionalUserCommunity = userCommunityRepository.findByCommunityIdAndUserId(postCommunity.getId(), userId);
             if (optionalUserCommunity.isPresent()) {
                 UserCommunity userCommunity = optionalUserCommunity.get();
-                Role userRole = userCommunity.getUserRole();
-                if (userRole == Role.ADMIN || userRole == Role.MODERATOR) {
+                CommunityRole userRole = userCommunity.getUserRole();
+                if (userRole == CommunityRole.ADMIN || userRole == CommunityRole.MODERATOR) {
                     postRepository.delete(post);
                     return;
                 }

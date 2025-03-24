@@ -10,4 +10,5 @@ import java.util.UUID;
 @Repository
 public interface CommunityRepository extends JpaRepository<Community, UUID> {
     List<Community> findByNameIgnoreCase(String name);
+    List<Community> findByNameContainingIgnoreCase(String name);
 }

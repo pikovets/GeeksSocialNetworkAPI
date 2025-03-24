@@ -9,6 +9,7 @@ import org.pikovets.GeeksSocialNetworkAPI.dto.post.CreatePostRequest;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotAllowedException;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotFoundException;
 import org.pikovets.GeeksSocialNetworkAPI.model.*;
+import org.pikovets.GeeksSocialNetworkAPI.model.enums.CommunityRole;
 import org.pikovets.GeeksSocialNetworkAPI.model.enums.Role;
 import org.pikovets.GeeksSocialNetworkAPI.repository.CommentRepository;
 import org.pikovets.GeeksSocialNetworkAPI.repository.PostLikeRepository;
@@ -116,7 +117,7 @@ public class PostServiceTest {
     void testDeletePost() {
         when(userService.getUserById(userId)).thenReturn(user);
         when(postRepository.findById(postId)).thenReturn(Optional.of(post));
-        when(userCommunityRepository.findByCommunityIdAndUserId(communityId, userId)).thenReturn(Optional.of(new UserCommunity(user, community, Role.ADMIN)));
+        when(userCommunityRepository.findByCommunityIdAndUserId(communityId, userId)).thenReturn(Optional.of(new UserCommunity(user, community, CommunityRole.ADMIN)));
 
         postService.deletePost(postId, userId);
 

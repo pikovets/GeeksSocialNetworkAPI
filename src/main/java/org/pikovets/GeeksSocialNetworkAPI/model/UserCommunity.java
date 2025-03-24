@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.pikovets.GeeksSocialNetworkAPI.model.enums.CommunityRole;
 import org.pikovets.GeeksSocialNetworkAPI.model.enums.Role;
 
 import java.io.Serializable;
@@ -32,7 +33,7 @@ public class UserCommunity {
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "user_role")
-    private Role userRole;
+    private CommunityRole userRole;
 
     public static class UserCommunityId implements Serializable {
         private UUID user;
