@@ -46,7 +46,7 @@ public class Community {
     private JoinType joinType;
 
     @NotNull
-    @Column(name = "created_date")
+    @Column(name = "created_date", columnDefinition = "DATE")
     private Date createdDate;
 
     @OneToMany(mappedBy = "community", cascade = CascadeType.REMOVE)
