@@ -27,7 +27,7 @@ public class Profile {
     @Size(max = 150, message = "Bio should be less than 150 characters long")
     private String bio;
 
-    @Column(name = "birthday")
+    @Column(name = "birthday", columnDefinition = "DATE")
     @JsonFormat(pattern="dd.MM.yyyy")
     private Date birthday;
 
@@ -40,7 +40,7 @@ public class Profile {
     private String address;
 
     @NotNull
-    @Column(name = "join_date")
+    @Column(name = "join_date", columnDefinition = "DATE")
     private Date joinDate;
 
     @OneToOne
