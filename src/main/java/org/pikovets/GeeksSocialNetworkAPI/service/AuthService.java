@@ -10,34 +10,30 @@ import org.pikovets.GeeksSocialNetworkAPI.model.User;
 import org.pikovets.GeeksSocialNetworkAPI.repository.UserRepository;
 import org.pikovets.GeeksSocialNetworkAPI.security.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Mono;
 
 @Service
 public class AuthService {
+
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
-    private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
     private final ProfileService profileService;
 
     @Autowired
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtils jwtUtils, AuthenticationManager authenticationManager, ProfileService profileService) {
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtils jwtUtils, ProfileService profileService) {
         this.passwordEncoder = passwordEncoder;
         this.jwtUtils = jwtUtils;
-        this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.profileService = profileService;
     }
 
-    @Transactional
-    public void registerUser(SignUpDTO registeredUser) {
-        User user = new User();
+    public Mono<Void> registerUser(SignUpDTO registeredUser) {
         String[] names = registeredUser.getFullName().split(" ", 2);
 
+        User user = new User();
         user.setFirstName(names[0]);
         user.setLastName(names.length == 2 ? names[1] : "");
         user.setEmail(registeredUser.getEmail());
@@ -45,29 +41,20 @@ public class AuthService {
         user.setRole(Role.USER);
         user.setIsActive(true);
 
-        userRepository.save(user);
-        profileService.saveEmptyProfile(user.getId());
+        return userRepository.save(user)
+                .flatMap(savedUser -> profileService.saveEmptyProfile(savedUser.getId()))
+                .then();
     }
 
-    @Transactional
-    public TokenResponse loginUser(AuthDTO authDTO) {
-        try {
-            User user = userRepository.findByEmail(authDTO.getEmail())
-                    .orElseThrow(() -> new NotFoundException("User not found"));
-
-            authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            user.getId(),
-                            authDTO.getPassword()
-                    )
-            );
-
-            String jwtToken = jwtUtils.generateToken(user);
-
-            return new TokenResponse(jwtToken);
-
-        } catch (Exception e) {
-            throw new BadRequestException("Incorrect username or password");
-        }
+    public Mono<TokenResponse> loginUser(AuthDTO authDTO) {
+        return userRepository.findByEmail(authDTO.getEmail())
+                .switchIfEmpty(Mono.error(new NotFoundException("User not found")))
+                .flatMap(user -> {
+                    if (!passwordEncoder.matches(authDTO.getPassword(), user.getPassword())) {
+                        return Mono.error(new BadRequestException("Incorrect username or password"));
+                    }
+                    String jwtToken = jwtUtils.generateToken(user);
+                    return Mono.just(new TokenResponse(jwtToken));
+                });
     }
 }

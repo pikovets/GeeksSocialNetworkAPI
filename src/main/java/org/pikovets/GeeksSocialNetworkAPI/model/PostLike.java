@@ -1,56 +1,32 @@
 package org.pikovets.GeeksSocialNetworkAPI.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.pikovets.GeeksSocialNetworkAPI.dto.user.UserDTO;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 
-import java.util.Objects;
 import java.util.UUID;
 
-@Entity
 @Data
 @NoArgsConstructor
-@Table(name = "post_like")
+@Table("post_like")
 public class PostLike {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id")
-    private UUID id;
+    @Column("id")
+    private UUID id = UUID.randomUUID();
 
     @NotNull
-    @ManyToOne
-    @JoinColumn(name = "post_id", referencedColumnName = "id")
-    private Post post;
+    @Column("post_id")
+    private UUID postId;
 
     @NotNull
-    @ManyToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
-    private User user;
+    @Column("user_id")
+    private UUID userId;
 
-    @Override
-    public String toString() {
-        return "PostLike{" +
-                "id=" + id +
-                '}';
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof PostLike postLike)) return false;
-
-        if (!post.equals(postLike.post)) return false;
-        return user.equals(postLike.user);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = post.hashCode();
-        result = 31 * result + user.hashCode();
-        return result;
+    public PostLike(UUID postId, UUID userId) {
+        this.postId = postId;
+        this.userId = userId;
     }
 }

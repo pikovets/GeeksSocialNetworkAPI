@@ -1,54 +1,37 @@
 package org.pikovets.GeeksSocialNetworkAPI.model;
 
-import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.pikovets.GeeksSocialNetworkAPI.model.enums.RelationshipType;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 
-import java.io.Serializable;
-import java.util.Objects;
 import java.util.UUID;
 
-@Entity
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@IdClass(UserRelationship.UserRelationshipId.class)
-@Table(name = "user_relationship")
+@Table("user_relationship")
 public class UserRelationship {
     @Id
-    @ManyToOne
-    @JoinColumn(name = "requester_id", referencedColumnName = "id")
-    private User requester;
-
-    @Id
-    @ManyToOne
-    @JoinColumn(name = "acceptor_id", referencedColumnName = "id")
-    private User acceptor;
+    private UserRelationshipId id;
 
     @NotNull
-    @Enumerated(EnumType.STRING)
-    @Column(name = "type")
+    @Column("type")
     private RelationshipType type;
 
-    public static class UserRelationshipId implements Serializable {
-        private UUID requester;
-        private UUID acceptor;
-    }
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class UserRelationshipId {
+        @Column("requester_id")
+        private UUID requesterId;
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        UserRelationship that = (UserRelationship) o;
-        return Objects.equals(requester.getId(), that.requester.getId()) &&
-                Objects.equals(acceptor.getId(), that.acceptor.getId());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(requester.getId(), acceptor.getId());
+        @Column("acceptor_id")
+        private UUID acceptorId;
     }
 }
+

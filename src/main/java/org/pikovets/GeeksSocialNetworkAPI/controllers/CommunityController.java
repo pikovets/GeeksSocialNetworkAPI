@@ -26,6 +26,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 
 import java.util.Set;
 import java.util.UUID;
@@ -51,19 +52,19 @@ public class CommunityController {
     @Operation(summary = "Get all communities", description = "Get all communities", responses = {@ApiResponse(description = "Success", responseCode = "200"), @ApiResponse(description = "Unauthorized / Invalid Token", responseCode = "403", content = @Content)})
     @GetMapping
     public ResponseEntity<CommunityResponse> getAllCommunities() {
-        return new ResponseEntity<>(new CommunityResponse(communityService.getAll().stream().map(this::convertToCommunityDTO).toList()), HttpStatus.OK);
+        return new ResponseEntity<>(communityService.getAll(), HttpStatus.OK);
     }
 
     @Operation(summary = "Get specific community", description = "Get specific community by community id", parameters = {@Parameter(name = "id", description = "Community id", required = true)}, responses = {@ApiResponse(description = "Success", responseCode = "200"), @ApiResponse(description = "Not Found", responseCode = "404", content = @Content(schema = @Schema(implementation = ErrorObject.class))), @ApiResponse(description = "Unauthorized / Invalid Token", responseCode = "403", content = @Content)})
     @GetMapping("/{id}")
-    public ResponseEntity<CommunityDTO> getCommunity(@PathVariable("id") UUID communityId) {
-        return new ResponseEntity<>(convertToCommunityDTO(communityService.getById(communityId)), HttpStatus.OK);
+    public ResponseEntity<Mono<CommunityDTO>> getCommunity(@PathVariable("id") UUID communityId) {
+        return new ResponseEntity<>(communityService.getById(communityId), HttpStatus.OK);
     }
 
     @Operation(summary = "Get specific community profile", description = "Get specific community profile by community id", parameters = {@Parameter(name = "id", description = "Community id", required = true)}, responses = {@ApiResponse(description = "Success", responseCode = "200"), @ApiResponse(description = "Not Found", responseCode = "404", content = @Content(schema = @Schema(implementation = ErrorObject.class))), @ApiResponse(description = "Unauthorized / Invalid Token", responseCode = "403", content = @Content)})
     @GetMapping("/{id}/getCommunityProfile")
-    public ResponseEntity<CommunityProfileDTO> getCommunityProfile(@PathVariable("id") UUID communityId) {
-        return new ResponseEntity<>(convertToCommunityProfileDTO(communityService.getById(communityId)), HttpStatus.OK);
+    public ResponseEntity<Mono<CommunityProfileDTO>> getCommunityProfile(@PathVariable("id") UUID communityId) {
+        return new ResponseEntity<>(communityService.getProfileById(communityId), HttpStatus.OK);
     }
 
     @Operation(summary = "Create community", description = "Create community", parameters = {@Parameter(name = "id", description = "Community id", required = true)}, responses = {@ApiResponse(description = "Success", responseCode = "200"), @ApiResponse(description = "Unauthorized / Invalid Token", responseCode = "403", content = @Content)})
@@ -97,13 +98,13 @@ public class CommunityController {
     @Operation(summary = "Search community", description = "Search community by community name", parameters = {@Parameter(name = "name", description = "Community name", required = true)}, responses = {@ApiResponse(description = "Success", responseCode = "200"), @ApiResponse(description = "Unauthorized / Invalid Token", responseCode = "403", content = @Content)})
     @GetMapping("/searchByName")
     public ResponseEntity<CommunityResponse> searchCommunityByName(@RequestParam(name = "name") String communityName) {
-        return new ResponseEntity<>(new CommunityResponse(communityService.searchCommunityByName(communityName).stream().map(this::convertToCommunityDTO).toList()), HttpStatus.OK);
+        return new ResponseEntity<>(communityService.searchCommunityByName(communityName), HttpStatus.OK);
     }
 
     @Operation(summary = "Get the user's role in a specific community", description = "Get the user's role in a specific community by community id", parameters = {@Parameter(name = "id", description = "Community id", required = true)}, responses = {@ApiResponse(description = "Success", responseCode = "200"), @ApiResponse(description = "Unauthorized / Invalid Token", responseCode = "403", content = @Content)})
     @GetMapping("/{communityId}/getUserRole/{userId}")
     public ResponseEntity<CommunityRoleResponse> getUserRole(@PathVariable("communityId") UUID communityId, @PathVariable("userId") UUID userId) {
-        return new ResponseEntity<>(new CommunityRoleResponse(communityService.getCurrentUserRole(communityId, userId)), HttpStatus.OK);
+        return new ResponseEntity<>(communityService.getCurrentUserRole(communityId, userId), HttpStatus.OK);
     }
 
     @Operation(summary = "Upload community post", parameters = {@Parameter(name = "communityId", description = "Community id", required = true)}, responses = {@ApiResponse(description = "Success", responseCode = "200"), @ApiResponse(description = "Unauthorized / Invalid Token", responseCode = "403", content = @Content)})
@@ -128,7 +129,7 @@ public class CommunityController {
     @Operation(summary = "Get community join requests", description = "Get community join requests for community moderation", parameters = {@Parameter(name = "communityId", description = "Community id", required = true)}, responses = {@ApiResponse(description = "Success", responseCode = "200"), @ApiResponse(description = "Unauthorized / Invalid Token", responseCode = "403", content = @Content)})
     @GetMapping("/{communityId}/communityJoinRequests")
     public ResponseEntity<UserResponse> getCommunityJoinRequests(@PathVariable(name = "communityId") UUID communityId) {
-        return new ResponseEntity<>(new UserResponse(mapUsersToUserDTOs(communityService.getCommunityJoinRequests(communityId)).stream().toList()), HttpStatus.OK);
+        return new ResponseEntity<>(communityService.getCommunityJoinRequests(communityId), HttpStatus.OK);
     }
 
     @PostMapping("/{communityId}/sendJoinCommunityRequest")
@@ -150,25 +151,6 @@ public class CommunityController {
         communityService.deleteJoinCommunityRequest(communityId, userId, authenticationFacade.getUserID());
 
         return new ResponseEntity<>(HttpStatus.OK);
-    }
-
-    public CommunityDTO convertToCommunityDTO(Community community) {
-        return modelMapper.map(community, CommunityDTO.class);
-    }
-
-    public CommunityProfileDTO convertToCommunityProfileDTO(Community community) {
-        CommunityProfileDTO communityProfileDTO = new CommunityProfileDTO();
-        communityProfileDTO.setId(community.getId());
-        communityProfileDTO.setName(community.getName());
-        communityProfileDTO.setDescription(community.getDescription());
-        communityProfileDTO.setCategory(community.getCategory());
-        communityProfileDTO.setPhotoLink(community.getPhotoLink());
-        communityProfileDTO.setPublishPermission(community.getPublishPermission());
-        communityProfileDTO.setJoinType(community.getJoinType());
-        communityProfileDTO.setCreatedDate(community.getCreatedDate());
-        communityProfileDTO.setPosts(mapPostsToPostDTOs(community.getPosts()));
-        communityProfileDTO.setFollowers(mapUsersToUserDTOs(communityService.getFollowers(community.getId())));
-        return communityProfileDTO;
     }
 
     private Set<PostDTO> mapPostsToPostDTOs(Set<Post> posts) {

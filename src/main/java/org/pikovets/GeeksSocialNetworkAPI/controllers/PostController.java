@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
@@ -66,8 +67,8 @@ public class PostController {
             }
     )
     @GetMapping("/{id}")
-    public ResponseEntity<PostDTO> getPost(@PathVariable("id") UUID postId) {
-        return new ResponseEntity<>(convertToPostDTO(postService.getPost(postId)), HttpStatus.OK);
+    public ResponseEntity<Mono<PostDTO>> getPost(@PathVariable("id") UUID postId) {
+        return new ResponseEntity<>(postService.getPost(postId), HttpStatus.OK);
     }
 
     @Operation(
@@ -191,7 +192,7 @@ public class PostController {
     )
     @GetMapping("/feed")
     public ResponseEntity<PostResponse> getFeed() {
-        return new ResponseEntity<>(new PostResponse(postService.getFeed(authenticationFacade.getUserID()).stream().map(this::convertToPostDTO).toList()), HttpStatus.OK);
+        return new ResponseEntity<>(postService.getFeed(authenticationFacade.getUserID()), HttpStatus.OK);
     }
 
     public PostDTO convertToPostDTO(Post post) {

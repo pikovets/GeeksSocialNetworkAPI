@@ -1,57 +1,47 @@
 package org.pikovets.GeeksSocialNetworkAPI.model;
 
-import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.pikovets.GeeksSocialNetworkAPI.model.enums.CommunityCategory;
 import org.pikovets.GeeksSocialNetworkAPI.model.enums.JoinType;
 import org.pikovets.GeeksSocialNetworkAPI.model.enums.PublishPermission;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 
-import java.util.Date;
-import java.util.Set;
+import java.time.LocalDate;
 import java.util.UUID;
 
-@Entity
 @NoArgsConstructor
 @Data
-@Table(name = "community")
+@Table("community")
 public class Community {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id")
-    private UUID id;
+    @Column("id")
+    private UUID id = UUID.randomUUID();
 
-    @Column(name = "name")
+    @Column("name")
     private String name;
 
-    @Column(name = "description")
+    @Column("description")
     private String description;
 
-    @Column(name = "category")
-    @Enumerated(EnumType.STRING)
+    @Column("category")
     private CommunityCategory category;
 
-    @Column(name = "photo_link")
+    @Column("photo_link")
     private String photoLink;
 
-    @Column(name = "publish_permission")
-    @Enumerated(EnumType.STRING)
+    @Column("publish_permission")
     @NotNull
     private PublishPermission publishPermission;
 
-    @Column(name = "join_type")
-    @Enumerated(EnumType.STRING)
+    @Column("join_type")
     @NotNull
     private JoinType joinType;
 
     @NotNull
-    @Column(name = "created_date", columnDefinition = "DATE")
-    private Date createdDate;
-
-    @OneToMany(mappedBy = "community", cascade = CascadeType.REMOVE)
-    private Set<Post> posts;
-
-    @OneToMany(mappedBy = "community", cascade = CascadeType.REMOVE)
-    private Set<UserCommunity> userCommunities;
+    @Column("created_date")
+    private LocalDate createdDate = LocalDate.now();
 }

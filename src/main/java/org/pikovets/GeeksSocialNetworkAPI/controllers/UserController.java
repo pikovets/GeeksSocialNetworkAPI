@@ -21,6 +21,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
@@ -30,26 +32,24 @@ import java.util.UUID;
 @Tag(name = "User")
 public class UserController {
     private final UserService userService;
-    private final ModelMapper modelMapper;
     private final IAuthenticationFacade authenticationFacade;
 
     @Autowired
     public UserController(UserService userService, ModelMapper modelMapper, IAuthenticationFacade authenticationFacade) {
         this.userService = userService;
-        this.modelMapper = modelMapper;
         this.authenticationFacade = authenticationFacade;
     }
 
     @Operation(summary = "Get all users", description = "Get all registered users", responses = {@ApiResponse(description = "Success", responseCode = "200"), @ApiResponse(description = "Unauthorized / Invalid Token", responseCode = "403")})
     @GetMapping
     public ResponseEntity<UserResponse> getAllUsers() {
-        return new ResponseEntity<>(new UserResponse(userService.getAllUsers().stream().map(this::convertToUserDTO).toList()), HttpStatus.OK);
+        return new ResponseEntity<>(userService.getAllUsers(), HttpStatus.OK);
     }
 
     @Operation(summary = "Get specific user", description = "Get user by id", parameters = {@Parameter(name = "id", description = "ID of user to return")}, responses = {@ApiResponse(description = "Success", responseCode = "200"), @ApiResponse(description = "Not Found", responseCode = "404", content = @Content(schema = @Schema(implementation = ErrorObject.class))), @ApiResponse(description = "Unauthorized / Invalid Token", responseCode = "403")})
     @GetMapping("/{id}")
-    public ResponseEntity<UserDTO> getUserById(@PathVariable("id") UUID id) {
-        return new ResponseEntity<>(convertToUserDTO(userService.getUserById(id)), HttpStatus.OK);
+    public ResponseEntity<Mono<UserDTO>> getUserById(@PathVariable("id") UUID id) {
+        return new ResponseEntity<>(userService.getUserById(id), HttpStatus.OK);
     }
 
     @Operation(
@@ -68,8 +68,8 @@ public class UserController {
             }
     )
     @GetMapping("/me")
-    public ResponseEntity<UserDTO> getCurrentUser() {
-        return new ResponseEntity<>(convertToUserDTO(userService.getUserById(authenticationFacade.getUserID())), HttpStatus.OK);
+    public ResponseEntity<Mono<UserDTO>> getCurrentUser() {
+        return new ResponseEntity<>(userService.getUserById(authenticationFacade.getUserID()), HttpStatus.OK);
     }
 
     @Operation(summary = "Delete current user", description = "Delete current user", responses = {@ApiResponse(description = "Success", responseCode = "200"), @ApiResponse(description = "Unauthorized / Invalid Token", responseCode = "403")})
@@ -103,7 +103,7 @@ public class UserController {
     )
     @GetMapping("/searchByName")
     public ResponseEntity<UserResponse> getSearchedUsers(@RequestParam(value = "name") String name) {
-        return new ResponseEntity<>(new UserResponse(userService.getUsersByName(name).stream().map(this::convertToUserDTO).toList()), HttpStatus.OK);
+        return new ResponseEntity<>(userService.getUsersByName(name), HttpStatus.OK);
     }
 
     @Operation(
@@ -130,7 +130,7 @@ public class UserController {
     )
     @GetMapping("/me/getFriends")
     public ResponseEntity<UserResponse> getFriends() {
-        return new ResponseEntity<>(new UserResponse(userService.getFriends(authenticationFacade.getUserID()).stream().map(this::convertToUserDTO).toList()), HttpStatus.OK);
+        return new ResponseEntity<>(userService.getFriends(authenticationFacade.getUserID()), HttpStatus.OK);
     }
 
     @Operation(
@@ -157,7 +157,7 @@ public class UserController {
     )
     @GetMapping("/{id}/getFriends")
     public ResponseEntity<UserResponse> getFriends(@PathVariable("id") UUID userId) {
-        return new ResponseEntity<>(new UserResponse(userService.getFriends(userId).stream().map(this::convertToUserDTO).toList()), HttpStatus.OK);
+        return new ResponseEntity<>(userService.getFriends(userId), HttpStatus.OK);
     }
 
     @Operation(
@@ -177,7 +177,7 @@ public class UserController {
     )
     @GetMapping("/me/getAcceptFriendRequests")
     public ResponseEntity<UserResponse> getAcceptFriendRequests() {
-        return new ResponseEntity<>(new UserResponse(userService.getAcceptFriendRequests(authenticationFacade.getUserID()).stream().map(this::convertToUserDTO).toList()), HttpStatus.OK);
+        return new ResponseEntity<>(userService.getAcceptFriendRequests(authenticationFacade.getUserID()), HttpStatus.OK);
     }
 
     @Operation(
@@ -198,7 +198,7 @@ public class UserController {
 
     @GetMapping("/me/getCommunities")
     public ResponseEntity<CommunityResponse> getCommunities() {
-        return new ResponseEntity<>(new CommunityResponse(userService.getCommunities(authenticationFacade.getUserID()).stream().map(this::convertToCommunityDTO).toList()), HttpStatus.OK);
+        return new ResponseEntity<>(userService.getCommunities(authenticationFacade.getUserID()), HttpStatus.OK);
     }
 
     @Operation(
@@ -226,7 +226,7 @@ public class UserController {
 
     @GetMapping("/{id}/getCommunities")
     public ResponseEntity<CommunityResponse> getCommunities(@PathVariable("id") UUID userId) {
-        return new ResponseEntity<>(new CommunityResponse(userService.getCommunities(userId).stream().map(this::convertToCommunityDTO).toList()), HttpStatus.OK);
+        return new ResponseEntity<>(userService.getCommunities(userId), HttpStatus.OK);
     }
 
     @Operation(
@@ -266,13 +266,5 @@ public class UserController {
     public ResponseEntity<HttpStatus> changeCommunityRole(@PathVariable("id") UUID userId, @RequestBody ChangeRoleRequest changeRoleRequest) {
         userService.changeCommunityRole(userId, changeRoleRequest, authenticationFacade.getUserID());
         return new ResponseEntity<>(HttpStatus.OK);
-    }
-
-    public UserDTO convertToUserDTO(User user) {
-        return modelMapper.map(user, UserDTO.class);
-    }
-
-    public CommunityDTO convertToCommunityDTO(Community community) {
-        return modelMapper.map(community, CommunityDTO.class);
     }
 }

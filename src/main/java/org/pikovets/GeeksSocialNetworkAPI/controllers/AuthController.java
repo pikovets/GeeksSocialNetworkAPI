@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("/auth")
@@ -41,7 +42,7 @@ public class AuthController {
             responses = {
                     @ApiResponse(
                             description = "Success",
-                            responseCode = "200"
+                            responseCode = "201"
                     ),
                     @ApiResponse(
                             description = "Bad Request",
@@ -51,15 +52,15 @@ public class AuthController {
             }
     )
     @PostMapping("/signup")
-    public ResponseEntity<HttpStatus> registerUser(@RequestBody @Valid SignUpDTO signUpDTO, BindingResult bindingResult) {
-        userValidator.validate(signUpDTO, bindingResult);
+    public Mono<ResponseEntity<HttpStatus>> registerUser(@RequestBody @Valid SignUpDTO signUpDTO, BindingResult bindingResult) {
+        // Synchronous validation
+        userValidator.validate(signUpDTO, null);
         if (bindingResult.hasErrors()) {
-            ErrorUtils.returnBadRequestException(bindingResult);
+            ErrorUtils.returnBadRequestException(null);
         }
 
-        authService.registerUser(signUpDTO);
-
-        return new ResponseEntity<>(HttpStatus.CREATED);
+        return authService.registerUser(signUpDTO)
+                .then(Mono.just(new ResponseEntity<>(HttpStatus.CREATED)));
     }
 
     @Operation(
@@ -78,8 +79,8 @@ public class AuthController {
             }
     )
     @PostMapping("/login")
-    public ResponseEntity<TokenResponse> loginUser(@RequestBody AuthDTO authDTO) {
-        TokenResponse jwtResponse = authService.loginUser(authDTO);
-        return new ResponseEntity<>(jwtResponse, HttpStatus.OK);
+    public Mono<ResponseEntity<TokenResponse>> loginUser(@RequestBody @Valid AuthDTO authDTO) {
+        return authService.loginUser(authDTO)
+                .map(jwtResponse -> new ResponseEntity<>(jwtResponse, HttpStatus.OK));
     }
 }

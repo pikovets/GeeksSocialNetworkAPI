@@ -1,5 +1,7 @@
 package org.pikovets.GeeksSocialNetworkAPI.service;
 
+import org.modelmapper.ModelMapper;
+import org.pikovets.GeeksSocialNetworkAPI.dto.profile.ProfileDTO;
 import org.pikovets.GeeksSocialNetworkAPI.dto.profile.UserProfileDTO;
 import org.pikovets.GeeksSocialNetworkAPI.dto.user.UserUpdateDTO;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotFoundException;
@@ -11,57 +13,57 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Mono;
 
-import java.util.Date;
 import java.util.UUID;
 
 @Service
 @Transactional(readOnly = true)
 public class ProfileService {
+    private static final String USER_NOT_FOUND = "User not found";
+
     private final ProfileRepository profileRepository;
-    private final UserService userService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ModelMapper modelMapper;
 
     @Autowired
-    public ProfileService(ProfileRepository profileRepository, UserService userService, UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public ProfileService(ProfileRepository profileRepository, UserRepository userRepository, PasswordEncoder passwordEncoder, ModelMapper modelMapper) {
         this.profileRepository = profileRepository;
-        this.userService = userService;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.modelMapper = modelMapper;
     }
 
-    public Profile getProfileByUserId(UUID userId) {
-        return profileRepository.findByUserId(userId).orElseThrow(new NotFoundException("User not found"));
+    public Mono<ProfileDTO> getProfileByUserId(UUID userId) {
+        return profileRepository.findByUserId(userId).switchIfEmpty(Mono.error(new NotFoundException(USER_NOT_FOUND))).map(this::convertToProfileDTO);
     }
 
-    @Transactional
-    public void saveEmptyProfile(UUID userId) {
+    public Mono<ProfileDTO> saveEmptyProfile(UUID userId) {
         Profile profile = new Profile();
-        profile.setUser(userService.getUserById(userId));
-        profile.setJoinDate(new Date());
+        profile.setUserId(userId);
 
-        profileRepository.save(profile);
+        return profileRepository.save(profile).map(this::convertToProfileDTO);
     }
 
-    @Transactional
-    public void updateUser(UserProfileDTO userProfileDTO, UUID userID) {
-        User currentUser = userService.getUserById(userID);
-        Profile currentProfile = getProfileByUserId(userID);
-
-        updateUser(currentUser, currentProfile, userProfileDTO);
+    public Mono<Void> updateUser(UserProfileDTO userProfileDTO, UUID userID) {
+        return userRepository.findById(userID)
+                .flatMap(currentUser -> profileRepository.findByUserId(userID)
+                        .flatMap(currentProfile -> {
+                            updateUser(currentUser, currentProfile, userProfileDTO);
+                            return userRepository.save(currentUser)
+                                    .then(profileRepository.save(currentProfile))
+                                    .then();
+                        }))
+                .switchIfEmpty(Mono.error(new NotFoundException(USER_NOT_FOUND)));
     }
 
-    @Transactional
     public void updateUser(User currentUser, Profile currentProfile, UserProfileDTO userProfileDTO) {
-        UserUpdateDTO updatedUser = userProfileDTO.getUser();
-        Profile updatedProfile = userProfileDTO.getProfile();
+        UserUpdateDTO updatedUser = userProfileDTO.getUserUpdate();
+        Profile updatedProfile = convertToProfile(userProfileDTO.getProfile());
 
         updateUserFields(currentUser, updatedUser);
         mergeProfiles(currentProfile, updatedProfile);
-
-        userRepository.save(currentUser);
-        profileRepository.save(updatedProfile);
     }
 
     public void updateUserFields(User userToBeUpdated, UserUpdateDTO updatedUser) {
@@ -87,20 +89,28 @@ public class ProfileService {
     }
 
     public void mergeProfiles(Profile profileToBeUpdated, Profile newProfile) {
-        profileToBeUpdated.setBio((newProfile.getBio() != null && !newProfile.getBio().isEmpty())
-                ? newProfile.getBio()
-                : profileToBeUpdated.getBio());
+        if (newProfile.getBio() != null && !newProfile.getBio().isEmpty()) {
+            profileToBeUpdated.setBio(newProfile.getBio());
+        }
 
-        profileToBeUpdated.setSex((newProfile.getSex() != null && !newProfile.getSex().isEmpty())
-                ? newProfile.getSex()
-                : profileToBeUpdated.getSex());
+        if (newProfile.getSex() != null && !newProfile.getSex().isEmpty()) {
+            profileToBeUpdated.setSex(newProfile.getSex());
+        }
 
-        profileToBeUpdated.setAddress((newProfile.getAddress() != null && !newProfile.getAddress().isEmpty())
-                ? newProfile.getAddress()
-                : profileToBeUpdated.getAddress());
+        if (newProfile.getAddress() != null && !newProfile.getAddress().isEmpty()) {
+            profileToBeUpdated.setAddress(newProfile.getAddress());
+        }
 
-        profileToBeUpdated.setBirthday((newProfile.getBirthday() != null && !newProfile.getBirthday().toString().isEmpty())
-                ? newProfile.getBirthday()
-                : profileToBeUpdated.getBirthday());
+        if (newProfile.getBirthday() != null) {
+            profileToBeUpdated.setBirthday(newProfile.getBirthday());
+        }
+    }
+
+    public ProfileDTO convertToProfileDTO(Profile profile) {
+        return modelMapper.map(profile, ProfileDTO.class);
+    }
+
+    public Profile convertToProfile(ProfileDTO profileDTO) {
+        return modelMapper.map(profileDTO, Profile.class);
     }
 }
