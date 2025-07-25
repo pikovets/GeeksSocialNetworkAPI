@@ -15,7 +15,7 @@ import java.util.UUID;
 public class PostLike {
     @Id
     @Column("id")
-    private UUID id = UUID.randomUUID();
+    private UUID id;
 
     @NotNull
     @Column("post_id")

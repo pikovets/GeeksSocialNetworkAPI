@@ -34,29 +34,26 @@ public class UserRelationshipController {
 
     @Operation(summary = "Get friend request", description = "Get friend request by user id", parameters = {@Parameter(name = "userId", description = "User id", required = true),}, responses = {@ApiResponse(description = "Success", responseCode = "200"), @ApiResponse(description = "Not Found", responseCode = "404", content = @Content(schema = @Schema(implementation = ErrorObject.class))), @ApiResponse(description = "Unauthorized / Invalid Token", responseCode = "403", content = @Content)})
     @GetMapping("/getFriendRequest")
-    public ResponseEntity<Mono<UserRelationshipDTO>> getFriendRequest(@RequestParam("userId") UUID userId) {
-        return new ResponseEntity<>(userRelationshipService.getFriendRequest(userId, authenticationFacade.getUserID()), HttpStatus.OK);
+    public Mono<UserRelationshipDTO> getFriendRequest(@RequestParam("userId") UUID userId) {
+        return authenticationFacade.getUserID().flatMap(authUserId -> userRelationshipService.getFriendRequest(userId, authUserId));
     }
 
     @Operation(summary = "Send friend request", description = "Send friend request by user id. The request will be pending acceptance by another user", parameters = {@Parameter(name = "userId", description = "User id", required = true),}, responses = {@ApiResponse(description = "Success", responseCode = "200"), @ApiResponse(description = "Not Found", responseCode = "404", content = @Content(schema = @Schema(implementation = ErrorObject.class))), @ApiResponse(description = "Unauthorized / Invalid Token", responseCode = "403", content = @Content)})
     @PostMapping("/sendFriendRequest")
-    public ResponseEntity<HttpStatus> sendFriendRequest(@RequestParam("userId") UUID userId) {
-        userRelationshipService.sendFriendRequest(userId, authenticationFacade.getUserID());
-        return new ResponseEntity<>(HttpStatus.OK);
+    public Mono<Void> sendFriendRequest(@RequestParam("userId") UUID userId) {
+        return authenticationFacade.getUserID().flatMap(authUserId -> userRelationshipService.sendFriendRequest(userId, authUserId)).then();
     }
 
     @Operation(summary = "Accept friend request", description = "Accept friend request by user id", parameters = {@Parameter(name = "userId", description = "User id", required = true),}, responses = {@ApiResponse(description = "Success", responseCode = "200"), @ApiResponse(description = "Not Found", responseCode = "404", content = @Content(schema = @Schema(implementation = ErrorObject.class))), @ApiResponse(description = "Not Allowed", responseCode = "405", content = @Content(schema = @Schema(implementation = ErrorObject.class))), @ApiResponse(description = "Unauthorized / Invalid Token", responseCode = "403", content = @Content)})
     @PatchMapping("/acceptFriendRequest")
-    public ResponseEntity<HttpStatus> acceptFriendRequest(@RequestParam("userId") UUID userId) {
-        userRelationshipService.acceptFriendRequest(userId, authenticationFacade.getUserID());
-        return new ResponseEntity<>(HttpStatus.OK);
+    public Mono<Void> acceptFriendRequest(@RequestParam("userId") UUID userId) {
+        return authenticationFacade.getUserID().flatMap(authUserId -> userRelationshipService.acceptFriendRequest(userId, authUserId));
     }
 
 
     @Operation(summary = "Delete friend request", description = "Delete friend request by user id", parameters = {@Parameter(name = "userId", description = "User id", required = true),}, responses = {@ApiResponse(description = "Success", responseCode = "200"), @ApiResponse(description = "Not Found", responseCode = "404", content = @Content(schema = @Schema(implementation = ErrorObject.class))), @ApiResponse(description = "Unauthorized / Invalid Token", responseCode = "403", content = @Content)})
     @DeleteMapping("/removeFriendRequest")
-    public ResponseEntity<HttpStatus> removeFriendRequest(@RequestParam("userId") UUID userId) {
-        userRelationshipService.removeFriendRequest(userId, authenticationFacade.getUserID());
-        return new ResponseEntity<>(HttpStatus.OK);
+    public Mono<Void> removeFriendRequest(@RequestParam("userId") UUID userId) {
+        return authenticationFacade.getUserID().flatMap(authUserId -> userRelationshipService.removeFriendRequest(userId, authUserId)).then();
     }
 }

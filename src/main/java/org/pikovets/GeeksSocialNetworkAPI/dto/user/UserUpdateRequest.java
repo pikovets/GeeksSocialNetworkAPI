@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserUpdateDTO {
+public class UserUpdateRequest {
     @Size(min = 1, max = 40, message = "First name should be between 1 and 40 characters long")
     @Pattern(regexp = "^[A-Za-z-' ]+$", message = "Make sure you don't use numbers or symbols in your first name")
     private String firstName;

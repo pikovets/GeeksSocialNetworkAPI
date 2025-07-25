@@ -19,7 +19,7 @@ import java.util.UUID;
 public class Community {
     @Id
     @Column("id")
-    private UUID id = UUID.randomUUID();
+    private UUID id;
 
     @Column("name")
     private String name;
@@ -41,7 +41,6 @@ public class Community {
     @NotNull
     private JoinType joinType;
 
-    @NotNull
     @Column("created_date")
-    private LocalDate createdDate = LocalDate.now();
+    private LocalDate createdDate;
 }

@@ -15,11 +15,10 @@ import java.util.UUID;
 @Table("comment")
 public class Comment {
     @Id
-    private UUID id = UUID.randomUUID();
+    private UUID id;
 
-    @NotNull
     @Column("date")
-    private LocalDateTime date = LocalDateTime.now();
+    private LocalDateTime date;
 
     @NotNull
     @Column("text")
@@ -36,4 +35,11 @@ public class Comment {
     @NotNull
     @Column("parent_comment_id")
     private UUID parentCommentId;
+
+    public Comment(String text, UUID parentCommentId, UUID postId, UUID userId) {
+        this.text = text;
+        this.parentCommentId = parentCommentId;
+        this.postId = postId;
+        this.userId = userId;
+    }
 }

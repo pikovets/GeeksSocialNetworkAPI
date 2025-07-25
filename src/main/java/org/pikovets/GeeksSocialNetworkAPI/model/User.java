@@ -18,7 +18,7 @@ import java.util.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table("\"user\"")
-public class User implements UserDetails {
+public class User {
     @Id
     @Column("id")
     private UUID id;
@@ -51,41 +51,6 @@ public class User implements UserDetails {
     @NotNull
     @Column("role")
     private Role role;
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(role.name()));
-    }
-
-    @Override
-    public String getPassword() {
-        return password;
-    }
-
-    @Override
-    public String getUsername() {
-        return id.toString();
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return isActive != null && isActive;
-    }
 
     @Override
     public Object clone() throws CloneNotSupportedException {

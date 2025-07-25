@@ -7,17 +7,21 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.reactive.CorsWebFilter;
+import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
+import org.springframework.web.reactive.config.CorsRegistry;
 import org.springframework.web.reactive.config.EnableWebFlux;
+import org.springframework.web.reactive.config.WebFluxConfigurer;
 
 @Configuration
 @EnableWebFlux
-public class ApplicationConfig {
+public class ApplicationConfig implements WebFluxConfigurer {
     private final UserRepository userRepository;
 
     public ApplicationConfig(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
-
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -31,4 +35,22 @@ public class ApplicationConfig {
 
         return modelMapper;
     }
+
+    @Bean
+    public CorsWebFilter corsWebFilter() {
+        System.out.println("==== CORS FILTER REGISTERED ====");
+        CorsConfiguration corsConfig = new CorsConfiguration();
+        corsConfig.setAllowCredentials(true);
+        corsConfig.addAllowedOrigin("http://localhost:8080");
+        corsConfig.addAllowedOrigin("http://prometheus:9090");
+        corsConfig.addAllowedOrigin("http://grafana:3000");
+        corsConfig.addAllowedHeader("*");
+        corsConfig.addAllowedMethod("*");
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", corsConfig);
+
+        return new CorsWebFilter(source);
+    }
+
 }

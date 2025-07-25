@@ -5,13 +5,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.server.ServerWebExchange;
 
 import java.util.Date;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<ErrorObject> handleNotFoundException(NotFoundException ex, WebRequest webRequest) {
+    public ResponseEntity<ErrorObject> handleNotFoundException(NotFoundException ex, ServerWebExchange exchange) {
         ErrorObject errorObject = new ErrorObject();
 
         errorObject.setStatusCode(HttpStatus.NOT_FOUND.value());
@@ -22,7 +23,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<ErrorObject> handleBadRequestException(BadRequestException ex, WebRequest webRequest) {
+    public ResponseEntity<ErrorObject> handleBadRequestException(BadRequestException ex, ServerWebExchange exchange) {
         ErrorObject errorObject = new ErrorObject();
 
         errorObject.setStatusCode(HttpStatus.BAD_REQUEST.value());

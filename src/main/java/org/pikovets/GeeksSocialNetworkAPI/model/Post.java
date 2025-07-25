@@ -17,11 +17,11 @@ import java.util.UUID;
 public class Post {
     @Id
     @Column("id")
-    private UUID id = UUID.randomUUID();
+    private UUID id;
 
     @NotNull
     @Column("date")
-    private LocalDateTime date = LocalDateTime.now();
+    private LocalDateTime date;
 
     @Size(min = 1, max = 2200, message = "The post text should contain between 1 and 2200 characters")
     @Column("text")

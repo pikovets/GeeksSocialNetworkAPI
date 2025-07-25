@@ -1,10 +1,11 @@
 package org.pikovets.GeeksSocialNetworkAPI.service;
 
+import io.jsonwebtoken.lang.Strings;
 import org.modelmapper.ModelMapper;
-import org.pikovets.GeeksSocialNetworkAPI.dto.CommentDTO;
+import org.pikovets.GeeksSocialNetworkAPI.dto.comment.CommentDTO;
+import org.pikovets.GeeksSocialNetworkAPI.dto.comment.CreateCommentRequest;
 import org.pikovets.GeeksSocialNetworkAPI.dto.post.CreatePostRequest;
 import org.pikovets.GeeksSocialNetworkAPI.dto.post.PostDTO;
-import org.pikovets.GeeksSocialNetworkAPI.dto.post.PostResponse;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotAllowedException;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotFoundException;
 import org.pikovets.GeeksSocialNetworkAPI.model.Comment;
@@ -15,11 +16,10 @@ import org.pikovets.GeeksSocialNetworkAPI.model.enums.CommunityRole;
 import org.pikovets.GeeksSocialNetworkAPI.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.reactive.TransactionalOperator;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.UUID;
 
@@ -34,54 +34,60 @@ public class PostService {
     private final PostLikeRepository postLikeRepository;
     private final CommentRepository commentRepository;
     private final UserService userService;
-    private final CommunityService communityService;
     private final UserRepository userRepository;
     private final CommunityRepository communityRepository;
     private final UserCommunityRepository userCommunityRepository;
-    private final UserRelationshipRepository userRelationshipRepository;
     private final ModelMapper modelMapper;
+    private final TransactionalOperator transactionalOperator;
 
     @Autowired
-    public PostService(PostRepository postRepository, PostLikeRepository postLikeRepository, CommentRepository commentRepository, UserRepository userRepository, UserService userService, CommunityService communityService, CommunityRepository communityRepository, UserCommunityRepository userCommunityRepository, UserRelationshipRepository userRelationshipRepository, ModelMapper modelMapper) {
+    public PostService(PostRepository postRepository, PostLikeRepository postLikeRepository, CommentRepository commentRepository, UserRepository userRepository, UserService userService, CommunityRepository communityRepository, UserCommunityRepository userCommunityRepository, ModelMapper modelMapper, TransactionalOperator transactionalOperator) {
         this.postRepository = postRepository;
         this.postLikeRepository = postLikeRepository;
         this.commentRepository = commentRepository;
         this.userRepository = userRepository;
         this.userService = userService;
-        this.communityService = communityService;
         this.communityRepository = communityRepository;
         this.userCommunityRepository = userCommunityRepository;
-        this.userRelationshipRepository = userRelationshipRepository;
         this.modelMapper = modelMapper;
+        this.transactionalOperator = transactionalOperator;
     }
 
     public Mono<PostDTO> getPost(UUID postId) {
         return postRepository.findById(postId).switchIfEmpty(Mono.error(new NotFoundException(POST_NOT_FOUND))).map(this::convertToPostDTO);
     }
 
-    public Mono<PostDTO> createPost(CreatePostRequest createRequest, UUID authorId) {
-        Post post = new Post();
-        post.setText(createRequest.getText());
-        post.setPhotoLink(createRequest.getPhotoLink());
+    public Mono<PostDTO> createPost(Mono<CreatePostRequest> createPostRequestMono, UUID authorId) {
+        return createPostRequestMono.flatMap(createPostRequest -> {
+            Post post = new Post();
+            post.setText(createPostRequest.getText());
+            post.setPhotoLink(createPostRequest.getPhotoLink());
 
-        enrichPost(authorId, post);
+            enrichPost(authorId, post);
 
-        return postRepository.save(post).map(this::convertToPostDTO);
+            return postRepository.save(post).as(transactionalOperator::transactional).map(this::convertToPostDTO);
+        });
     }
 
-    public Mono<PostDTO> createPost(CreatePostRequest createRequest, UUID authorId, UUID communityId) {
-        Post post = new Post();
-        post.setText(createRequest.getText());
-        post.setPhotoLink(createRequest.getPhotoLink());
-        post.setCommunityId(communityId);
+    public Mono<PostDTO> createPost(Mono<CreatePostRequest> createPostRequestMono, UUID authorId, UUID communityId) {
+        return createPostRequestMono.flatMap(createPostRequest -> {
+            Post post = new Post();
+            if (Strings.hasText(post.getText())) {
+                post.setText(createPostRequest.getText());
+            }
+            if (Strings.hasText(post.getPhotoLink())) {
+                post.setPhotoLink(createPostRequest.getPhotoLink());
+            }
+            post.setCommunityId(communityId);
 
-        enrichPost(authorId, post);
+            enrichPost(authorId, post);
 
-        return postRepository.save(post).map(this::convertToPostDTO);
+            return postRepository.save(post).as(transactionalOperator::transactional).map(this::convertToPostDTO);
+        });
     }
 
-    public PostResponse getPosts(UUID entityId) {
-        return new PostResponse(userRepository.findById(entityId)
+    public Flux<PostDTO> getPosts(UUID entityId) {
+        return userRepository.findById(entityId)
                 .flatMapMany(user ->
                         postRepository.findByAuthorIdOrderByDateDesc(entityId)
                                 .filter(post -> post.getCommunityId() == null)
@@ -92,7 +98,7 @@ public class PostService {
                                         postRepository.findByCommunityIdOrderByDateDesc(entityId)
                                 )
                 )
-                .switchIfEmpty(Flux.error(new NotFoundException(POST_NOT_FOUND))).map(this::convertToPostDTO));
+                .switchIfEmpty(Flux.error(new NotFoundException(POST_NOT_FOUND))).map(this::convertToPostDTO);
     }
 
 
@@ -115,7 +121,8 @@ public class PostService {
                     } else {
                         return Mono.error(new IllegalStateException(OWNER_NOT_FOUND));
                     }
-                });
+                })
+                .as(transactionalOperator::transactional);
     }
 
 
@@ -126,49 +133,41 @@ public class PostService {
                 .switchIfEmpty(Mono.error(new NotFoundException(USER_NOT_FOUND)));
 
         return Mono.zip(postMono, userMono)
-                .flatMap(tuple -> {
-                    Post post = tuple.getT1();
-                    User user = tuple.getT2();
-                    return postLikeRepository.findByPostIdAndUserId(postId, authUserId)
-                            .flatMap(existingLike -> postLikeRepository.deleteById(existingLike.getId()))
-                            .switchIfEmpty(
-                                    postLikeRepository.save(new PostLike(postId, authUserId))
-                                            .then()
-                            );
-                });
+                .flatMap(ignored ->
+                        postLikeRepository.findByPostIdAndUserId(postId, authUserId)
+                                .flatMap(existingLike -> postLikeRepository.deleteById(existingLike.getId()))
+                                .switchIfEmpty(
+                                        postLikeRepository.save(new PostLike(postId, authUserId)).then()
+                                )
+                );
     }
 
-    public PostResponse getFeed(UUID authUserId) {
-        return new PostResponse(userService.getFriends(authUserId)
-                .getUsers().flatMap(friend -> postRepository.findByAuthorIdOrderByDateDesc(friend.getId())
+    public Flux<PostDTO> getFeed(UUID authUserId) {
+        return userService.getFriends(authUserId).onErrorResume(e -> Flux.empty())
+                .flatMap(friend -> postRepository.findByAuthorIdOrderByDateDesc(friend.getId())
                         .concatWith(postRepository.findByAuthorIdOrderByDateDesc(authUserId))
                         .map(this::convertToPostDTO)
-                        .sort(Comparator.comparing(PostDTO::getDate).reversed())));
+                        .sort(Comparator.comparing(PostDTO::getDate).reversed()));
     }
 
-    public Mono<CommentDTO> addComment(UUID postId, Comment comment) {
-        return postRepository.findById(postId).switchIfEmpty(Mono.error(new NotFoundException(POST_NOT_FOUND))).flatMap(post -> {
-                    enrichComment(comment);
-                    comment.setPostId(postId);
-                    return commentRepository.save(comment).map(this::convertToCommentDTO);
-                });
+    public Mono<CommentDTO> addComment(UUID postId, UUID authUserId, Mono<CreateCommentRequest> commentRequestMono) {
+        return commentRequestMono.flatMap(commentRequest -> postRepository.findById(postId).switchIfEmpty(Mono.error(new NotFoundException(POST_NOT_FOUND))).flatMap(post -> {
+                    return commentRepository.save(new Comment(commentRequest.getText(), commentRequest.getParentCommentId(), postId, authUserId))
+                            .as(transactionalOperator::transactional)
+                            .map(this::convertToCommentDTO);
+                }
+        ));
     }
 
     public void enrichPost(UUID authorID, Post post) {
         post.setAuthorId(authorID);
-        post.setDate(LocalDateTime.now());
-    }
-
-    public CommentDTO enrichComment(Comment comment) {
-        comment.setDate(LocalDateTime.now());
-        return convertToCommentDTO(comment);
     }
 
     private PostDTO convertToPostDTO(Post post) {
         return modelMapper.map(post, PostDTO.class);
     }
 
-    private CommentDTO convertToCommentDTO(Comment comment) {
+    public CommentDTO convertToCommentDTO(Comment comment) {
         return modelMapper.map(comment, CommentDTO.class);
     }
 }

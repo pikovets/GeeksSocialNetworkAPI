@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
@@ -49,9 +50,8 @@ public class CommentController {
             }
     )
     @PostMapping("/{id}/toggleLike")
-    public ResponseEntity<HttpStatus> toggleCommentLike(@PathVariable("id") UUID commentId) {
-        commentService.toggleCommentLike(commentId, authenticationFacade.getUserID());
-        return new ResponseEntity<>(HttpStatus.OK);
+    public Mono<Void> toggleCommentLike(@PathVariable("id") UUID commentId) {
+        return authenticationFacade.getUserID().flatMap(authUserId -> commentService.toggleCommentLike(commentId, authUserId));
     }
 
     @Operation(
@@ -85,8 +85,7 @@ public class CommentController {
             }
     )
     @DeleteMapping("/{id}")
-    public ResponseEntity<HttpStatus> deleteComment(@PathVariable("id") UUID commentId) {
-        commentService.deleteComment(commentId, authenticationFacade.getUserID());
-        return new ResponseEntity<>(HttpStatus.OK);
+    public Mono<Void> deleteComment(@PathVariable("id") UUID commentId) {
+        return authenticationFacade.getUserID().flatMap(authUserId -> commentService.deleteComment(commentId, authUserId));
     }
 }

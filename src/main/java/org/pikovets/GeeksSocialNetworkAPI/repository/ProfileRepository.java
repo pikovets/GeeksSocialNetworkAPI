@@ -10,4 +10,5 @@ import java.util.UUID;
 @Repository
 public interface ProfileRepository extends ReactiveCrudRepository<Profile, UUID> {
     Mono<Profile> findByUserId(UUID userId);
+    Mono<Profile> deleteByUserId(UUID userId);
 }

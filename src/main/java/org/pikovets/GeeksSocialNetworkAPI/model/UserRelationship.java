@@ -16,22 +16,14 @@ import java.util.UUID;
 @NoArgsConstructor
 @Table("user_relationship")
 public class UserRelationship {
-    @Id
-    private UserRelationshipId id;
+    @Column("requester_id")
+    private UUID requesterId;
+
+    @Column("acceptor_id")
+    private UUID acceptorId;
 
     @NotNull
     @Column("type")
     private RelationshipType type;
-
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class UserRelationshipId {
-        @Column("requester_id")
-        private UUID requesterId;
-
-        @Column("acceptor_id")
-        private UUID acceptorId;
-    }
 }
 

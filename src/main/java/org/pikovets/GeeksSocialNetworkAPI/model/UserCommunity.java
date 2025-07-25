@@ -16,26 +16,13 @@ import java.util.UUID;
 @NoArgsConstructor
 @Table("user_community")
 public class UserCommunity {
+    @Column("user_id")
+    private UUID userId;
 
-    public UserCommunity(UUID userId, UUID communityId, CommunityRole userRole) {
-        new UserCommunityId(userId, communityId);
-        this.userRole = userRole;
-    }
-
-    @Id
-    private UserCommunityId id;
+    @Column("community_id")
+    private UUID communityId;
 
     @NotNull
     @Column("user_role")
     private CommunityRole userRole;
-
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class UserCommunityId {
-        @Column("user_id")
-        private UUID userId;
-        @Column("community_id")
-        private UUID communityId;
-    }
 }
