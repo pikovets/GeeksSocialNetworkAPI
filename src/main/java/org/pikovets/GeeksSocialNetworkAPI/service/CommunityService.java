@@ -1,150 +1,197 @@
 package org.pikovets.GeeksSocialNetworkAPI.service;
 
-import org.pikovets.GeeksSocialNetworkAPI.dto.community.CommunityUpdateDTO;
+import org.modelmapper.ModelMapper;
+import org.pikovets.GeeksSocialNetworkAPI.dto.community.CommunityDTO;
+import org.pikovets.GeeksSocialNetworkAPI.dto.community.CommunityProfileDTO;
+import org.pikovets.GeeksSocialNetworkAPI.dto.community.CommunityUpdateRequest;
 import org.pikovets.GeeksSocialNetworkAPI.dto.community.CreateCommunityRequest;
+import org.pikovets.GeeksSocialNetworkAPI.dto.user.UserDTO;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotAllowedException;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotFoundException;
 import org.pikovets.GeeksSocialNetworkAPI.model.Community;
 import org.pikovets.GeeksSocialNetworkAPI.model.User;
 import org.pikovets.GeeksSocialNetworkAPI.model.UserCommunity;
 import org.pikovets.GeeksSocialNetworkAPI.model.enums.CommunityRole;
+import org.pikovets.GeeksSocialNetworkAPI.model.enums.JoinType;
 import org.pikovets.GeeksSocialNetworkAPI.repository.CommunityRepository;
 import org.pikovets.GeeksSocialNetworkAPI.repository.UserCommunityRepository;
+import org.pikovets.GeeksSocialNetworkAPI.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.reactive.TransactionalOperator;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
-@Transactional(readOnly = true)
 public class CommunityService {
-    private final CommunityRepository communityRepository;
-    private final UserCommunityRepository userCommunityRepository;
-    private final UserService userService;
-
+    private static final String COMMUNITY_NOT_FOUND = "Community not found";
     private static final String USER_NOT_FOUND_IN_COMMUNITY = "User not found in community";
     private static final String USER_NOT_ALLOWED = "User not allowed to perform this action";
 
+    private final UserRepository userRepository;
+    private final CommunityRepository communityRepository;
+    private final UserCommunityRepository userCommunityRepository;
+    private final ModelMapper modelMapper;
+    private final TransactionalOperator transactionalOperator;
+
     @Autowired
-    public CommunityService(CommunityRepository communityRepository, UserCommunityRepository userCommunityRepository, UserService userService) {
+    public CommunityService(UserRepository userRepository, CommunityRepository communityRepository, UserCommunityRepository userCommunityRepository, UserService userService, ModelMapper modelMapper, TransactionalOperator transactionalOperator) {
+        this.userRepository = userRepository;
         this.communityRepository = communityRepository;
         this.userCommunityRepository = userCommunityRepository;
-        this.userService = userService;
+        this.modelMapper = modelMapper;
+        this.transactionalOperator = transactionalOperator;
     }
 
-    public List<Community> getAll() {
-        return communityRepository.findAll();
+    public Flux<CommunityDTO> getAll() {
+        return communityRepository.findAll().map(this::convertToCommunityDTO);
     }
 
-    public Community getById(UUID communityId) {
-        return communityRepository.findById(communityId).orElseThrow(new NotFoundException("Community not found"));
+    public Mono<CommunityDTO> getById(UUID communityId) {
+        return communityRepository.findById(communityId).switchIfEmpty(Mono.error(new NotFoundException(COMMUNITY_NOT_FOUND))).map(this::convertToCommunityDTO);
     }
 
-    @Transactional
-    public void createCommunity(CreateCommunityRequest communityRequest, UUID adminId) {
-        Community community = new Community();
-
-        community.setName(communityRequest.getName());
-        community.setCategory(communityRequest.getCategory());
-//        community.setPublishPermission(communityRequest.getPublishPermission());
-        community.setJoinType(communityRequest.getJoinType());
-
-        communityRepository.save(community);
-
-        User admin = userService.getUserById(adminId);
-        userCommunityRepository.save(new UserCommunity(admin, community, CommunityRole.ADMIN));
+    public Mono<CommunityProfileDTO> getProfileById(UUID communityId) {
+        return communityRepository.findById(communityId).switchIfEmpty(Mono.error(new NotFoundException(COMMUNITY_NOT_FOUND))).map(this::convertToCommunityProfileDTO);
     }
 
-    @Transactional
-    public void deleteCommunityById(UUID communityId, UUID authUserId) {
-        Optional<UserCommunity> userCommunity = userCommunityRepository.findByCommunityIdAndUserId(communityId, authUserId);
+    public Mono<CommunityDTO> createCommunity(Mono<CreateCommunityRequest> communityRequestMono, UUID adminId) {
+        return communityRequestMono.flatMap(communityRequest -> {
+            Community toSave = new Community();
 
-        if (userCommunity.isEmpty() || !userCommunity.get().getUserRole().equals(CommunityRole.ADMIN)) {
-            throw new NotAllowedException(USER_NOT_ALLOWED);
-        }
+            toSave.setName(communityRequest.getName());
+            toSave.setCategory(communityRequest.getCategory());
+            toSave.setJoinType(communityRequest.getJoinType());
+            //      toSave.setPublishPermission(communityRequest.getPublishPermission());
 
-        userCommunityRepository.delete(userCommunity.get());
-        communityRepository.deleteById(communityId);
+            return communityRepository
+                    .save(toSave)
+                    .flatMap(savedCommunity ->
+                            userRepository
+                                    .findById(adminId)
+                                    .switchIfEmpty(
+                                            Mono.error(new NotFoundException("User not found"))
+                                    )
+                                    .flatMap(adminUser -> {
+                                                System.out.println(adminUser.getId() + " " + savedCommunity.getId());
+                                                return userCommunityRepository
+                                                        .save(new UserCommunity(adminUser.getId(),
+                                                                savedCommunity.getId(),
+                                                                CommunityRole.ADMIN));
+                                            }
+                                    )
+                                    .thenReturn(savedCommunity)
+                    )
+                    .map(this::convertToCommunityDTO);
+        }).as(transactionalOperator::transactional);
     }
 
-    @Transactional
-    public void addMember(UUID communityId, UUID authUserId) {
-        userCommunityRepository.save(new UserCommunity(userService.getUserById(authUserId), getById(communityId), CommunityRole.MEMBER));
+    public Mono<Void> deleteCommunityById(UUID communityId, UUID authUserId) {
+        return userCommunityRepository.findByCommunityIdAndUserId(communityId, authUserId)
+                .switchIfEmpty(Mono.error(new NotAllowedException(USER_NOT_ALLOWED)))
+                .filter(userCommunity -> userCommunity.getUserRole().equals(CommunityRole.ADMIN))
+                .switchIfEmpty(Mono.error(new NotAllowedException(USER_NOT_ALLOWED)))
+                .then(userCommunityRepository.deleteByCommunityIdAndUserId(communityId, authUserId))
+                .then(communityRepository.deleteById(communityId))
+                .as(transactionalOperator::transactional);
     }
 
-    @Transactional
-    public void sendJoinCommunityRequest(UUID communityId, UUID userId) {
-        userCommunityRepository.save(new UserCommunity(userService.getUserById(userId), getById(communityId), CommunityRole.WAITING_TO_ACCEPT));
+    public Mono<UserCommunity> addMember(UUID communityId, UUID authUserId) {
+        return userCommunityRepository.save(new UserCommunity(authUserId, communityId, CommunityRole.MEMBER))
+                .as(transactionalOperator::transactional);
     }
 
-    @Transactional
-    public void deleteJoinCommunityRequest(UUID communityId, UUID userId, UUID authUserId) {
-        CommunityRole authUserRole = getCurrentUserRole(communityId, authUserId);
-        if (!(authUserRole.equals(CommunityRole.ADMIN) || authUserRole.equals(CommunityRole.MODERATOR))) {
-            throw new NotAllowedException(USER_NOT_ALLOWED);
-        }
-        userCommunityRepository.delete(userCommunityRepository.findByCommunityIdAndUserId(communityId, userId).orElseThrow(new NotFoundException(USER_NOT_FOUND_IN_COMMUNITY)));
+    public Mono<UserCommunity> joinCommunity(UUID communityId, UUID userId) {
+        return communityRepository.findById(communityId).switchIfEmpty(Mono.error(new NotAllowedException(COMMUNITY_NOT_FOUND))).flatMap(community -> community.getJoinType().equals(JoinType.OPEN) ? addMember(communityId, userId) : sendJoinCommunityRequest(communityId, userId));
     }
 
-    @Transactional
-    public void leaveCommunity(UUID communityId, UUID authUserId) {
-        userCommunityRepository.delete(userCommunityRepository.findByCommunityIdAndUserId(communityId, authUserId).orElseThrow(new NotFoundException(USER_NOT_FOUND_IN_COMMUNITY)));
+    public Mono<UserCommunity> sendJoinCommunityRequest(UUID communityId, UUID userId) {
+        return userCommunityRepository.save(new UserCommunity(userId, communityId, CommunityRole.WAITING_TO_ACCEPT))
+                .as(transactionalOperator::transactional);
     }
 
-    @Transactional
-    public void updateCommunity(CommunityUpdateDTO community, UUID communityId, UUID userId) {
-        CommunityRole authUserRole = getCurrentUserRole(communityId, userId);
-        if (!(authUserRole.equals(CommunityRole.ADMIN) || authUserRole.equals(CommunityRole.MODERATOR))) {
-            throw new NotAllowedException(USER_NOT_ALLOWED);
-        }
-        Community currentCommunity = communityRepository.findById(communityId).get();
-
-        currentCommunity.setName((community.getName() != null && !community.getName().isEmpty())
-                ? community.getName()
-                : currentCommunity.getName());
-
-        currentCommunity.setCategory((community.getCategory() != null && !community.getCategory().toString().isEmpty())
-                ? community.getCategory()
-                : currentCommunity.getCategory());
-
-        currentCommunity.setDescription((community.getDescription() != null && !community.getDescription().isEmpty())
-                ? community.getDescription()
-                : currentCommunity.getDescription());
-
-        currentCommunity.setPhotoLink((community.getPhotoLink() != null && !community.getPhotoLink().isEmpty())
-                ? community.getPhotoLink()
-                : currentCommunity.getPhotoLink());
-
-        currentCommunity.setPublishPermission((community.getPublishPermission() != null && !community.getPublishPermission().toString().isEmpty())
-                ? community.getPublishPermission()
-                : currentCommunity.getPublishPermission());
-
-        currentCommunity.setJoinType((community.getJoinType() != null && !community.getJoinType().toString().isEmpty())
-                ? community.getJoinType()
-                : currentCommunity.getJoinType());
-
-        communityRepository.save(currentCommunity);
+    public Mono<Void> deleteJoinCommunityRequest(UUID communityId, UUID userId, UUID authUserId) {
+        return userCommunityRepository.findByCommunityIdAndUserId(communityId, authUserId)
+                .switchIfEmpty(Mono.error(new NotAllowedException(USER_NOT_FOUND_IN_COMMUNITY)))
+                .filter(userCommunity -> userCommunity.getUserRole().equals(CommunityRole.ADMIN) || userCommunity.getUserRole().equals(CommunityRole.MODERATOR))
+                .switchIfEmpty(Mono.error(new NotAllowedException(USER_NOT_ALLOWED)))
+                .then(userCommunityRepository.deleteByCommunityIdAndUserId(communityId, userId))
+                .as(transactionalOperator::transactional)
+                .then();
     }
 
-    public List<Community> searchCommunityByName(String name) {
-        return communityRepository.findByNameContainingIgnoreCase(name);
+    public Mono<Void> leaveCommunity(UUID communityId, UUID authUserId) {
+        return userCommunityRepository.deleteByCommunityIdAndUserId(communityId, authUserId)
+                .switchIfEmpty(Mono.error(new NotFoundException(USER_NOT_FOUND_IN_COMMUNITY)))
+                .as(transactionalOperator::transactional)
+                .then();
     }
 
-    public Set<User> getCommunityJoinRequests(UUID communityId) {
-        return userCommunityRepository.findByCommunityId(communityId).stream().filter(request -> request.getUserRole().equals(CommunityRole.WAITING_TO_ACCEPT)).map(UserCommunity::getUser).collect(Collectors.toSet());
+    public Mono<CommunityDTO> updateCommunity(Mono<CommunityUpdateRequest> communityUpdateDTOMono, UUID communityId, UUID userId) {
+        return communityUpdateDTOMono.flatMap(communityUpdateRequest -> getCurrentUserRole(communityId, userId)
+                .filter(role -> role == CommunityRole.ADMIN || role == CommunityRole.MODERATOR)
+                .switchIfEmpty(Mono.error(new NotAllowedException(USER_NOT_ALLOWED)))
+                .then(communityRepository.findById(communityId)
+                        .switchIfEmpty(Mono.error(new NotFoundException(COMMUNITY_NOT_FOUND))))
+                .flatMap(current -> {
+                    if (communityUpdateRequest.getName() != null && !communityUpdateRequest.getName().isEmpty()) {
+                        current.setName(communityUpdateRequest.getName());
+                    }
+                    if (communityUpdateRequest.getCategory() != null) {
+                        current.setCategory(communityUpdateRequest.getCategory());
+                    }
+                    if (communityUpdateRequest.getDescription() != null && !communityUpdateRequest.getDescription().isEmpty()) {
+                        current.setDescription(communityUpdateRequest.getDescription());
+                    }
+                    if (communityUpdateRequest.getPhotoLink() != null && !communityUpdateRequest.getPhotoLink().isEmpty()) {
+                        current.setPhotoLink(communityUpdateRequest.getPhotoLink());
+                    }
+                    if (communityUpdateRequest.getPublishPermission() != null) {
+                        current.setPublishPermission(communityUpdateRequest.getPublishPermission());
+                    }
+                    if (communityUpdateRequest.getJoinType() != null) {
+                        current.setJoinType(communityUpdateRequest.getJoinType());
+                    }
+                    return communityRepository.save(current);
+                }).as(transactionalOperator::transactional)
+                .map(this::convertToCommunityDTO));
     }
 
-    public CommunityRole getCurrentUserRole(UUID communityId, UUID authUserId) {
-        return userCommunityRepository.findByCommunityIdAndUserId(communityId, authUserId).map(UserCommunity::getUserRole).orElseThrow(new NotFoundException(USER_NOT_FOUND_IN_COMMUNITY));
+    public Flux<CommunityDTO> searchCommunityByName(String name) {
+        return communityRepository.findByNameContainingIgnoreCase(name).map(this::convertToCommunityDTO);
     }
 
-    public Set<User> getFollowers(UUID communityId) {
-        return userCommunityRepository.findByCommunityId(communityId).stream().filter(userCommunity -> !userCommunity.getUserRole().equals(CommunityRole.WAITING_TO_ACCEPT)).map(UserCommunity::getUser).collect(Collectors.toSet());
+    public Flux<UserDTO> getCommunityJoinRequests(UUID communityId, UUID userId) {
+        return getCurrentUserRole(communityId, userId)
+                .filter(role -> role == CommunityRole.ADMIN || role == CommunityRole.MODERATOR)
+                .switchIfEmpty(Mono.error(new NotAllowedException(USER_NOT_ALLOWED)))
+                .flatMapMany(role ->
+                        userCommunityRepository.findByCommunityId(communityId)
+                                .filter(request -> request.getUserRole().equals(CommunityRole.WAITING_TO_ACCEPT))
+                                .flatMap(userCommunity -> userRepository.findById(userCommunity.getUserId()))
+                                .map(this::convertToUserDTO)
+                );
+    }
+
+    public Mono<CommunityRole> getCurrentUserRole(UUID communityId, UUID userId) {
+        return userCommunityRepository
+                .findByCommunityIdAndUserId(communityId, userId)
+                .map(UserCommunity::getUserRole)
+                .switchIfEmpty(Mono.error(new NotAllowedException(USER_NOT_ALLOWED)));
+    }
+
+    public UserDTO convertToUserDTO(User user) {
+        return modelMapper.map(user, UserDTO.class);
+    }
+
+    public CommunityDTO convertToCommunityDTO(Community community) {
+        return modelMapper.map(community, CommunityDTO.class);
+    }
+
+    public CommunityProfileDTO convertToCommunityProfileDTO(Community community) {
+        return modelMapper.map(community, CommunityProfileDTO.class);
     }
 
 }

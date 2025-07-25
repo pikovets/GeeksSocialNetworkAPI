@@ -4,23 +4,14 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import lombok.*;
-
-import java.util.UUID;
-
-/**
- * Model class representing a user update request in the system.
- * This class extends the standard User model, incorporating additional fields
- * to handle password updates specifically. The update request is distinct from
- * the regular user model and includes two new fields: oldPassword and newPassword.
- * These fields are utilized when updating the user's password, providing the
- * necessary information to authenticate the user and set the new password securely.
- */
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserUpdateDTO {
+public class UserUpdateRequest {
     @Size(min = 1, max = 40, message = "First name should be between 1 and 40 characters long")
     @Pattern(regexp = "^[A-Za-z-' ]+$", message = "Make sure you don't use numbers or symbols in your first name")
     private String firstName;

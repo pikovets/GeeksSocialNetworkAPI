@@ -1,15 +1,18 @@
-package org.pikovets.GeeksSocialNetworkAPI.dto;
+package org.pikovets.GeeksSocialNetworkAPI.dto.comment;
 
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.pikovets.GeeksSocialNetworkAPI.dto.user.UserDTO;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.Set;
 import java.util.UUID;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class CommentDTO {
+
     @NotNull
     private UUID id;
 
@@ -20,9 +23,10 @@ public class CommentDTO {
     private String text;
 
     @NotNull
-    private UserDTO author;
+    private UUID postId;
 
-    private CommentDTO parentComment;
+    @NotNull
+    private UUID userId;
 
-    private Set<CommentLikeDTO> likes;
+    private UUID parentCommentId;
 }

@@ -1,11 +1,12 @@
 package org.pikovets.GeeksSocialNetworkAPI.security;
 
 import org.springframework.security.core.Authentication;
+import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
 public interface IAuthenticationFacade {
-    Authentication getAuthentication();
+    Mono<Authentication> getAuthentication();
 
-    UUID getUserID();
+    Mono<UUID> getUserID();
 }

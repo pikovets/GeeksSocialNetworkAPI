@@ -1,17 +1,15 @@
 package org.pikovets.GeeksSocialNetworkAPI.repository;
 
-import org.pikovets.GeeksSocialNetworkAPI.model.Community;
 import org.pikovets.GeeksSocialNetworkAPI.model.Post;
-import org.pikovets.GeeksSocialNetworkAPI.model.User;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Flux;
 
-import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface PostRepository extends JpaRepository<Post, UUID> {
-    List<Post> findByAuthorOrderByDateDesc(User author);
+public interface PostRepository extends ReactiveCrudRepository<Post, UUID> {
+    Flux<Post> findByAuthorIdOrderByDateDesc(UUID authorId);
 
-    List<Post> findByCommunityOrderByDateDesc(Community community);
+    Flux<Post> findByCommunityIdOrderByDateDesc(UUID communityId);
 }

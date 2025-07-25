@@ -5,34 +5,30 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
-import org.pikovets.GeeksSocialNetworkAPI.core.ErrorUtils;
 import org.pikovets.GeeksSocialNetworkAPI.dto.TokenResponse;
 import org.pikovets.GeeksSocialNetworkAPI.dto.user.AuthDTO;
-import org.pikovets.GeeksSocialNetworkAPI.dto.user.SignUpDTO;
+import org.pikovets.GeeksSocialNetworkAPI.dto.user.SignUpRequest;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.ErrorObject;
 import org.pikovets.GeeksSocialNetworkAPI.service.AuthService;
-import org.pikovets.GeeksSocialNetworkAPI.validator.UserValidator;
+import org.pikovets.GeeksSocialNetworkAPI.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("/auth")
 @Tag(name = "Auth")
 public class AuthController {
     private final AuthService authService;
-    private final UserValidator userValidator;
+    private final UserService userService;
 
     @Autowired
-    public AuthController(AuthService authService, UserValidator userValidator) {
+    public AuthController(AuthService authService, UserService userService) {
         this.authService = authService;
-        this.userValidator = userValidator;
+        this.userService = userService;
     }
 
     @Operation(
@@ -41,7 +37,7 @@ public class AuthController {
             responses = {
                     @ApiResponse(
                             description = "Success",
-                            responseCode = "200"
+                            responseCode = "201"
                     ),
                     @ApiResponse(
                             description = "Bad Request",
@@ -51,15 +47,11 @@ public class AuthController {
             }
     )
     @PostMapping("/signup")
-    public ResponseEntity<HttpStatus> registerUser(@RequestBody @Valid SignUpDTO signUpDTO, BindingResult bindingResult) {
-        userValidator.validate(signUpDTO, bindingResult);
-        if (bindingResult.hasErrors()) {
-            ErrorUtils.returnBadRequestException(bindingResult);
-        }
-
-        authService.registerUser(signUpDTO);
-
-        return new ResponseEntity<>(HttpStatus.CREATED);
+    public Mono<Void> registerUser(@RequestBody Mono<SignUpRequest> signUpDTOMono) {
+        return signUpDTOMono
+                .flatMap(signUpRequest ->
+                        userService.validateEmailUnique(signUpRequest.getEmail())
+                                .then(authService.registerUser(Mono.just(signUpRequest))));
     }
 
     @Operation(
@@ -78,8 +70,7 @@ public class AuthController {
             }
     )
     @PostMapping("/login")
-    public ResponseEntity<TokenResponse> loginUser(@RequestBody AuthDTO authDTO) {
-        TokenResponse jwtResponse = authService.loginUser(authDTO);
-        return new ResponseEntity<>(jwtResponse, HttpStatus.OK);
+    public Mono<TokenResponse> loginUser(@RequestBody Mono<AuthDTO> authDTOMono) {
+        return authService.loginUser(authDTOMono);
     }
 }

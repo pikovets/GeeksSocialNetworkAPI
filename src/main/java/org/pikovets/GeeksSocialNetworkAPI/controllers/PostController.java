@@ -2,23 +2,25 @@ package org.pikovets.GeeksSocialNetworkAPI.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.modelmapper.ModelMapper;
+import org.pikovets.GeeksSocialNetworkAPI.dto.comment.CommentDTO;
+import org.pikovets.GeeksSocialNetworkAPI.dto.comment.CreateCommentRequest;
 import org.pikovets.GeeksSocialNetworkAPI.dto.post.PostDTO;
-import org.pikovets.GeeksSocialNetworkAPI.dto.post.PostResponse;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.ErrorObject;
 import org.pikovets.GeeksSocialNetworkAPI.model.Comment;
-import org.pikovets.GeeksSocialNetworkAPI.model.Post;
+import org.pikovets.GeeksSocialNetworkAPI.repository.CommentRepository;
+import org.pikovets.GeeksSocialNetworkAPI.repository.CommunityRepository;
 import org.pikovets.GeeksSocialNetworkAPI.security.IAuthenticationFacade;
+import org.pikovets.GeeksSocialNetworkAPI.service.CommentService;
 import org.pikovets.GeeksSocialNetworkAPI.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
@@ -28,18 +30,18 @@ import java.util.UUID;
 @Tag(name = "Post")
 public class PostController {
     private final PostService postService;
+    private final CommentRepository commentRepository;
     private final IAuthenticationFacade authenticationFacade;
-    private final ModelMapper modelMapper;
 
     @Autowired
-    public PostController(PostService postService, IAuthenticationFacade authenticationFacade, ModelMapper modelMapper) {
+    public PostController(PostService postService, CommunityRepository communityRepository, CommentRepository commentRepository, CommentService commentService, IAuthenticationFacade authenticationFacade) {
         this.postService = postService;
+        this.commentRepository = commentRepository;
         this.authenticationFacade = authenticationFacade;
-        this.modelMapper = modelMapper;
     }
 
     @Operation(
-            summary = "Get specific post",
+            summary = "Get post",
             description = "Get specific post by id",
             parameters = {
                     @Parameter(
@@ -66,12 +68,12 @@ public class PostController {
             }
     )
     @GetMapping("/{id}")
-    public ResponseEntity<PostDTO> getPost(@PathVariable("id") UUID postId) {
-        return new ResponseEntity<>(convertToPostDTO(postService.getPost(postId)), HttpStatus.OK);
+    public Mono<PostDTO> getPost(@PathVariable("id") UUID postId) {
+        return postService.getPost(postId);
     }
 
     @Operation(
-            summary = "Delete specific post",
+            summary = "Delete post",
             description = "Delete specific post by id. Also checks if the current user is owner of the post",
             parameters = {
                     @Parameter(
@@ -103,9 +105,8 @@ public class PostController {
             }
     )
     @DeleteMapping("/{id}")
-    public ResponseEntity<HttpStatus> deletePost(@PathVariable("id") UUID postId) {
-        postService.deletePost(postId, authenticationFacade.getUserID());
-        return new ResponseEntity<>(HttpStatus.OK);
+    public Mono<Void> deletePost(@PathVariable("id") UUID postId) {
+        return authenticationFacade.getUserID().flatMap(authUserId -> postService.deletePost(postId, authUserId)).then();
     }
 
     @Operation(
@@ -136,9 +137,35 @@ public class PostController {
             }
     )
     @PostMapping("/{id}/toggleLike")
-    public ResponseEntity<HttpStatus> toggleLike(@PathVariable("id") UUID postId) {
-        postService.toggleLike(postId, authenticationFacade.getUserID());
-        return new ResponseEntity<>(HttpStatus.OK);
+    public Mono<Void> toggleLike(@PathVariable("id") UUID postId) {
+        return authenticationFacade.getUserID().flatMap(authUserId -> postService.toggleLike(postId, authUserId)).then();
+    }
+
+    @Operation(
+            summary = "Get comments",
+            description = "Get comments by post id",
+            parameters = {
+                    @Parameter(
+                            name = "id",
+                            description = "Post id",
+                            required = true
+                    ),
+            },
+            responses = {
+                    @ApiResponse(
+                            description = "Success",
+                            responseCode = "200"
+                    ),
+                    @ApiResponse(
+                            description = "Unauthorized / Invalid Token",
+                            responseCode = "403",
+                            content = @Content
+                    )
+            }
+    )
+    @GetMapping("{id}/comments")
+    public Flux<CommentDTO> getCommentsByPostId(@PathVariable("id") String postId) {
+        return commentRepository.findByPostId(postId).map(postService::convertToCommentDTO);
     }
 
     @Operation(
@@ -169,9 +196,8 @@ public class PostController {
             }
     )
     @PostMapping("/{id}/addComment")
-    public ResponseEntity<HttpStatus> addComment(@PathVariable("id") UUID postId, @RequestBody Comment comment) {
-        postService.addComment(postId, comment);
-        return new ResponseEntity<>(HttpStatus.OK);
+    public Mono<Void> addComment(@PathVariable("id") UUID postId, @RequestBody Mono<CreateCommentRequest> commentRequest) {
+        return authenticationFacade.getUserID().flatMap(authUserId -> postService.addComment(postId, authUserId, commentRequest)).then();
     }
 
     @Operation(
@@ -190,11 +216,7 @@ public class PostController {
             }
     )
     @GetMapping("/feed")
-    public ResponseEntity<PostResponse> getFeed() {
-        return new ResponseEntity<>(new PostResponse(postService.getFeed(authenticationFacade.getUserID()).stream().map(this::convertToPostDTO).toList()), HttpStatus.OK);
-    }
-
-    public PostDTO convertToPostDTO(Post post) {
-        return modelMapper.map(post, PostDTO.class);
+    public Flux<PostDTO> getFeed() {
+        return authenticationFacade.getUserID().flatMapMany(postService::getFeed);
     }
 }

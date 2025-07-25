@@ -11,7 +11,7 @@ import org.pikovets.GeeksSocialNetworkAPI.model.enums.PublishPermission;
 
 @Setter
 @Getter
-public class CommunityUpdateDTO {
+public class CommunityUpdateRequest {
     @Size(min = 1, max = 50, message = "Community name should be between 1 and 50 characters long")
     @Pattern(regexp = "^[A-Za-z-' ]+$", message = "Make sure you don't use numbers or symbols in community name")
     private String name;

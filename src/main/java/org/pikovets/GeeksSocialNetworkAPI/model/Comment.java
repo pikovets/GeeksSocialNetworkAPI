@@ -1,68 +1,45 @@
 package org.pikovets.GeeksSocialNetworkAPI.model;
 
-import jakarta.annotation.Nullable;
-import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.UUID;
 
-@Entity
 @Data
 @NoArgsConstructor
-@Table(name = "comment")
+@Table("comment")
 public class Comment {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @NotNull
-    @Column(name = "date")
-    private LocalDateTime date = LocalDateTime.now();
+    @Column("date")
+    private LocalDateTime date;
 
     @NotNull
-    @Column(name = "text")
+    @Column("text")
     private String text;
 
-    @ManyToOne
-    @JoinColumn(name = "post_id", referencedColumnName = "id")
-    private Post post;
+    @NotNull
+    @Column("post_id")
+    private UUID postId;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
-    private User author;
+    @NotNull
+    @Column("user_id")
+    private UUID userId;
 
-    @Nullable
-    @ManyToOne
-    @JoinColumn(name = "parent_comment_id", referencedColumnName = "id")
-    private Comment parentComment;
+    @NotNull
+    @Column("parent_comment_id")
+    private UUID parentCommentId;
 
-    @OneToMany(mappedBy = "comment", cascade = CascadeType.REMOVE)
-    private Set<CommentLike> likes = new HashSet<>();
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Comment comment)) return false;
-
-        if (!id.equals(comment.id)) return false;
-        if (!date.equals(comment.date)) return false;
-        if (!text.equals(comment.text)) return false;
-        if (!post.equals(comment.post)) return false;
-        if (!author.equals(comment.author)) return false;
-        return Objects.equals(parentComment, comment.parentComment);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = date.hashCode();
-        result = 31 * result + text.hashCode();
-        result = 31 * result + post.hashCode();
-        result = 31 * result + author.hashCode();
-        result = 31 * result + (parentComment != null ? parentComment.hashCode() : 0);
-        return result;
+    public Comment(String text, UUID parentCommentId, UUID postId, UUID userId) {
+        this.text = text;
+        this.parentCommentId = parentCommentId;
+        this.postId = postId;
+        this.userId = userId;
     }
 }

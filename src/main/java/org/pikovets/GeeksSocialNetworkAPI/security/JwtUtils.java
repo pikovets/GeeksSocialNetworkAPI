@@ -5,16 +5,19 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.pikovets.GeeksSocialNetworkAPI.model.User;
+import org.pikovets.GeeksSocialNetworkAPI.service.UserService;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import reactor.core.publisher.Mono;
 
-import java.security.Key;
+import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 
 @Service
 public class JwtUtils {
@@ -22,55 +25,68 @@ public class JwtUtils {
     @Value("${jwt.jwtSecret}")
     private String jwtSecret;
 
-    public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
+    private final UserService userService;
+
+    public JwtUtils(UserService userService) {
+        this.userService = userService;
     }
 
-    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = extractAllClaims(token);
-        return claimsResolver.apply(claims);
+    public Mono<String> generateToken(Map<String, Object> extraClaims, Mono<User> userMono) {
+        return userMono.map(user ->
+                Jwts.builder()
+                        .setClaims(extraClaims)
+                        .setSubject(user.getId().toString())
+                        .setIssuedAt(new Date(System.currentTimeMillis()))
+                        .setExpiration(new Date(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(14)))
+                        .signWith(getSignInKey(), SignatureAlgorithm.HS256)
+                        .compact()
+        );
     }
 
-    private Claims extractAllClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSignInKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+
+    public Mono<String> generateToken(Mono<User> userMono) {
+        return generateToken(new HashMap<>(), userMono);
     }
 
-    public String generateToken(
-            Map<String, Object> extraClaims,
-            UserDetails userDetails
-    ) {
-        return Jwts.builder()
-                .setClaims(extraClaims)
-                .setSubject(userDetails.getUsername())
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(14)))
-                .signWith(getSignInKey(), SignatureAlgorithm.HS256)
-                .compact();
+    public Mono<Boolean> isTokenValid(String token) {
+        if (!StringUtils.hasText(token)) {
+            return Mono.just(Boolean.FALSE);
+        }
+
+        String userId;
+        try {
+            userId = extractUsername(token);
+            if (!StringUtils.hasText(userId) || isTokenExpired(token)) {
+                return Mono.just(Boolean.FALSE);
+            }
+            UUID uuid = UUID.fromString(userId);
+            return userService.getUserById(uuid)
+                    .map(user -> true)
+                    .onErrorResume(e -> Mono.just(false));
+        } catch (Exception e) {
+            return Mono.just(Boolean.FALSE);
+        }
     }
 
-    public String generateToken(UserDetails userDetails) {
-        return generateToken(new HashMap<>(), userDetails);
+
+    private boolean isTokenExpired(String token) {
+        return extractExpiration(token).before(new Date());
     }
 
-    private Key getSignInKey() {
+    private SecretKey getSignInKey() {
         byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
+    public String extractUsername(String token) {
+        return extractAllClaims(token).getSubject();
+    }
+
     private Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
+        return extractAllClaims(token).getExpiration();
     }
 
-    public boolean isTokenValid(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
-    }
-
-    private boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
+    private Claims extractAllClaims(String token) {
+        return Jwts.parser().verifyWith(getSignInKey()).build().parseSignedClaims(token).getPayload();
     }
 }

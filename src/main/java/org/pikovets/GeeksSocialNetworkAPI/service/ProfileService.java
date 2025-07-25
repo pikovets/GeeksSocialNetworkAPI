@@ -1,7 +1,11 @@
 package org.pikovets.GeeksSocialNetworkAPI.service;
 
+import io.jsonwebtoken.lang.Strings;
+import org.modelmapper.ModelMapper;
+import org.pikovets.GeeksSocialNetworkAPI.dto.profile.ProfileDTO;
+import org.pikovets.GeeksSocialNetworkAPI.dto.profile.ProfileUpdateRequest;
 import org.pikovets.GeeksSocialNetworkAPI.dto.profile.UserProfileDTO;
-import org.pikovets.GeeksSocialNetworkAPI.dto.user.UserUpdateDTO;
+import org.pikovets.GeeksSocialNetworkAPI.dto.user.UserUpdateRequest;
 import org.pikovets.GeeksSocialNetworkAPI.exceptions.NotFoundException;
 import org.pikovets.GeeksSocialNetworkAPI.model.Profile;
 import org.pikovets.GeeksSocialNetworkAPI.model.User;
@@ -10,97 +14,94 @@ import org.pikovets.GeeksSocialNetworkAPI.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.reactive.TransactionalOperator;
+import reactor.core.publisher.Mono;
 
-import java.util.Date;
 import java.util.UUID;
 
 @Service
-@Transactional(readOnly = true)
 public class ProfileService {
+    private static final String USER_NOT_FOUND = "User not found";
+
     private final ProfileRepository profileRepository;
-    private final UserService userService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ModelMapper modelMapper;
+    private final TransactionalOperator transactionalOperator;
 
     @Autowired
-    public ProfileService(ProfileRepository profileRepository, UserService userService, UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public ProfileService(ProfileRepository profileRepository, UserRepository userRepository, PasswordEncoder passwordEncoder, ModelMapper modelMapper, TransactionalOperator transactionalOperator) {
         this.profileRepository = profileRepository;
-        this.userService = userService;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.modelMapper = modelMapper;
+        this.transactionalOperator = transactionalOperator;
     }
 
-    public Profile getProfileByUserId(UUID userId) {
-        return profileRepository.findByUserId(userId).orElseThrow(new NotFoundException("User not found"));
+    public Mono<ProfileDTO> getProfileByUserId(UUID userId) {
+        return profileRepository.findByUserId(userId).switchIfEmpty(Mono.error(new NotFoundException(USER_NOT_FOUND))).map(this::convertToProfileDTO);
     }
 
-    @Transactional
-    public void saveEmptyProfile(UUID userId) {
+    public Mono<ProfileDTO> saveEmptyProfile(UUID userId) {
         Profile profile = new Profile();
-        profile.setUser(userService.getUserById(userId));
-        profile.setJoinDate(new Date());
+        profile.setUserId(userId);
 
-        profileRepository.save(profile);
+        return profileRepository.save(profile).as(transactionalOperator::transactional).map(this::convertToProfileDTO);
     }
 
-    @Transactional
-    public void updateUser(UserProfileDTO userProfileDTO, UUID userID) {
-        User currentUser = userService.getUserById(userID);
-        Profile currentProfile = getProfileByUserId(userID);
+    public Mono<Void> updateUser(UserProfileDTO userProfileDTO, UUID userID) {
+        return userRepository.findById(userID)
+                .switchIfEmpty(Mono.error(new NotFoundException(USER_NOT_FOUND)))
+                .zipWhen(user -> profileRepository.findByUserId(userID)
+                        .switchIfEmpty(Mono.error(new NotFoundException(USER_NOT_FOUND))))
+                .flatMap(tuple -> {
+                    User currentUser = tuple.getT1();
+                    Profile currentProfile = tuple.getT2();
+                    applyUserUpdates(currentUser, userProfileDTO.getUserUpdate());
+                    applyProfileUpdates(currentProfile, userProfileDTO.getProfileUpdate());
 
-        updateUser(currentUser, currentProfile, userProfileDTO);
+                    return userRepository.save(currentUser)
+                            .then(profileRepository.save(currentProfile))
+                            .as(transactionalOperator::transactional)
+                            .then();
+                });
     }
 
-    @Transactional
-    public void updateUser(User currentUser, Profile currentProfile, UserProfileDTO userProfileDTO) {
-        UserUpdateDTO updatedUser = userProfileDTO.getUser();
-        Profile updatedProfile = userProfileDTO.getProfile();
-
-        updateUserFields(currentUser, updatedUser);
-        mergeProfiles(currentProfile, updatedProfile);
-
-        userRepository.save(currentUser);
-        profileRepository.save(updatedProfile);
-    }
-
-    public void updateUserFields(User userToBeUpdated, UserUpdateDTO updatedUser) {
-        if (updatedUser.getFirstName() != null) {
-            userToBeUpdated.setFirstName(updatedUser.getFirstName());
+    private void applyUserUpdates(User user, UserUpdateRequest update) {
+        if (Strings.hasText(update.getFirstName())) {
+            user.setFirstName(update.getFirstName());
         }
-
-        if (updatedUser.getLastName() != null) {
-            userToBeUpdated.setLastName(updatedUser.getLastName());
+        if (Strings.hasText(update.getLastName())) {
+            user.setLastName(update.getLastName());
         }
-
-        if (updatedUser.getEmail() != null) {
-            userToBeUpdated.setEmail(updatedUser.getEmail());
+        if (Strings.hasText(update.getEmail())) {
+            user.setEmail(update.getEmail());
         }
-
-        if (updatedUser.getNewPassword() != null) {
-            userToBeUpdated.setPassword(passwordEncoder.encode(updatedUser.getNewPassword()));
+        if (Strings.hasText(update.getNewPassword())) {
+            user.setPassword(passwordEncoder.encode(update.getNewPassword()));
         }
-
-        if (updatedUser.getPhotoLink() != null) {
-            userToBeUpdated.setPhotoLink(updatedUser.getPhotoLink());
+        if (Strings.hasText(update.getPhotoLink())) {
+            user.setPhotoLink(update.getPhotoLink());
         }
     }
 
-    public void mergeProfiles(Profile profileToBeUpdated, Profile newProfile) {
-        profileToBeUpdated.setBio((newProfile.getBio() != null && !newProfile.getBio().isEmpty())
-                ? newProfile.getBio()
-                : profileToBeUpdated.getBio());
+    private void applyProfileUpdates(Profile profile, ProfileUpdateRequest update) {
+        if (Strings.hasText(update.getBio())) {
+            profile.setBio(update.getBio());
+        }
+        if (Strings.hasText(update.getSex())) {
+            profile.setSex(update.getSex());
+        }
+        if (Strings.hasText(update.getAddress())) {
+            profile.setAddress(update.getAddress());
+        }
+        if (update.getBirthday() != null) {
+            profile.setBirthday(update.getBirthday());
+        }
+    }
 
-        profileToBeUpdated.setSex((newProfile.getSex() != null && !newProfile.getSex().isEmpty())
-                ? newProfile.getSex()
-                : profileToBeUpdated.getSex());
 
-        profileToBeUpdated.setAddress((newProfile.getAddress() != null && !newProfile.getAddress().isEmpty())
-                ? newProfile.getAddress()
-                : profileToBeUpdated.getAddress());
-
-        profileToBeUpdated.setBirthday((newProfile.getBirthday() != null && !newProfile.getBirthday().toString().isEmpty())
-                ? newProfile.getBirthday()
-                : profileToBeUpdated.getBirthday());
+    private ProfileDTO convertToProfileDTO(Profile profile) {
+        return modelMapper.map(profile, ProfileDTO.class);
     }
 }

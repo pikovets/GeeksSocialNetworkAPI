@@ -33,8 +33,4 @@ public class CommunityProfileDTO {
     private JoinType joinType;
 
     private Date createdDate;
-
-    private Set<PostDTO> posts;
-
-    private Set<UserDTO> followers;
 }
