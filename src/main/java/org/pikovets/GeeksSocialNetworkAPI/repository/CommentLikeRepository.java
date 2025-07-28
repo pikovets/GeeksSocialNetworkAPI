@@ -10,4 +10,5 @@ import java.util.UUID;
 @Repository
 public interface CommentLikeRepository extends ReactiveCrudRepository<CommentLike, UUID> {
     Mono<CommentLike> findByCommentIdAndUserId(UUID commentId, UUID userId);
+
 }

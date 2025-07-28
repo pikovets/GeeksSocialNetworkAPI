@@ -12,10 +12,8 @@ import org.pikovets.GeeksSocialNetworkAPI.exceptions.ErrorObject;
 import org.pikovets.GeeksSocialNetworkAPI.service.AuthService;
 import org.pikovets.GeeksSocialNetworkAPI.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 @RestController
@@ -46,6 +44,7 @@ public class AuthController {
                     )
             }
     )
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/signup")
     public Mono<Void> registerUser(@RequestBody Mono<SignUpRequest> signUpDTOMono) {
         return signUpDTOMono

@@ -7,7 +7,6 @@ import org.pikovets.GeeksSocialNetworkAPI.repository.CommentLikeRepository;
 import org.pikovets.GeeksSocialNetworkAPI.repository.CommentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.reactive.TransactionalOperator;
 import reactor.core.publisher.Mono;
 
@@ -30,13 +29,25 @@ public class CommentService {
     }
 
     public Mono<Void> toggleCommentLike(UUID commentId, UUID authUserId) {
-        return commentLikeRepository.findByCommentIdAndUserId(commentId, authUserId).flatMap(commentLike -> commentLikeRepository.deleteById(commentLike.getId())).switchIfEmpty(Mono.defer(() -> {
-            CommentLike commentLike = new CommentLike();
-            commentLike.setCommentId(commentId);
-            commentLike.setUserId(authUserId);
-            return commentLikeRepository.save(commentLike).then();
-        })).as(transactionalOperator::transactional);
+        return commentLikeRepository.findByCommentIdAndUserId(commentId, authUserId)
+                .flatMap(commentLike -> {
+                    return commentLikeRepository.deleteById(commentLike.getId())
+                            .then();
+                })
+                .switchIfEmpty(
+                        Mono.defer(() -> {
+                            CommentLike commentLike = new CommentLike();
+                            commentLike.setCommentId(commentId);
+                            commentLike.setUserId(authUserId);
+                            return commentLikeRepository.save(commentLike)
+                                    .then();
+                        })
+                )
+                .as(transactionalOperator::transactional);
     }
+
+
+
 
     public Mono<Void> deleteComment(UUID commentId, UUID authUserId) {
         return commentRepository.findById(commentId)

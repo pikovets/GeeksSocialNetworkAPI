@@ -6,52 +6,53 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
 
 import java.util.Date;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<ErrorObject> handleNotFoundException(NotFoundException ex, ServerWebExchange exchange) {
+    public Mono<ResponseEntity<ErrorObject>> handleNotFoundException(NotFoundException ex, ServerWebExchange exchange) {
         ErrorObject errorObject = new ErrorObject();
 
         errorObject.setStatusCode(HttpStatus.NOT_FOUND.value());
         errorObject.setMessage(ex.getMessage());
         errorObject.setTimestamp(new Date());
 
-        return new ResponseEntity<>(errorObject, HttpStatus.NOT_FOUND);
+        return Mono.just(new ResponseEntity<>(errorObject, HttpStatus.NOT_FOUND));
     }
 
     @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<ErrorObject> handleBadRequestException(BadRequestException ex, ServerWebExchange exchange) {
+    public Mono<ResponseEntity<ErrorObject>> handleBadRequestException(BadRequestException ex, ServerWebExchange exchange) {
         ErrorObject errorObject = new ErrorObject();
 
         errorObject.setStatusCode(HttpStatus.BAD_REQUEST.value());
         errorObject.setMessage(ex.getMessage());
         errorObject.setTimestamp(new Date());
 
-        return new ResponseEntity<>(errorObject, HttpStatus.BAD_REQUEST);
+        return Mono.just(new ResponseEntity<>(errorObject, HttpStatus.BAD_REQUEST));
     }
 
     @ExceptionHandler(UnAuthorizedException.class)
-    public ResponseEntity<ErrorObject> handleContentUnauthorized(UnAuthorizedException ex) {
+    public Mono<ResponseEntity<ErrorObject>> handleContentUnauthorized(UnAuthorizedException ex) {
         ErrorObject errorObject = new ErrorObject();
 
         errorObject.setStatusCode(HttpStatus.BAD_REQUEST.value());
         errorObject.setMessage(ex.getMessage());
         errorObject.setTimestamp(new Date());
 
-        return new ResponseEntity<>(errorObject, HttpStatus.UNAUTHORIZED);
+        return Mono.just(new ResponseEntity<>(errorObject, HttpStatus.UNAUTHORIZED));
     }
 
     @ExceptionHandler(NotAllowedException.class)
-    public ResponseEntity<ErrorObject> handleContentNotAllowed(NotAllowedException ex) {
+    public Mono<ResponseEntity<ErrorObject>> handleContentNotAllowed(NotAllowedException ex) {
         ErrorObject errorObject = new ErrorObject();
 
         errorObject.setStatusCode(HttpStatus.METHOD_NOT_ALLOWED.value());
         errorObject.setMessage(ex.getMessage());
         errorObject.setTimestamp(new Date());
 
-        return new ResponseEntity<>(errorObject, HttpStatus.METHOD_NOT_ALLOWED);
+        return Mono.just(new ResponseEntity<>(errorObject, HttpStatus.METHOD_NOT_ALLOWED));
     }
 }
